@@ -39,7 +39,7 @@ git add -A && git commit -m "silent scaffold via frame-gate hook (0.1.3)"
 
 If `marketplace update` reports the marketplace isn't found, re-add then install:
 ```
-/plugin marketplace add D:\Project\AI Agents\spine
+/plugin marketplace add D:\Project\Plugins\Spine Plugin
 /plugin install spine
 ```
 

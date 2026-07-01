@@ -15,7 +15,7 @@ Phases 2 (enforcement: classifier + forced-review hook), 3 (grafts: confidence-t
 ## Install (local)
 
 ```
-/plugin marketplace add D:\Project\AI Agents\spine
+/plugin marketplace add D:\Project\Plugins\Spine Plugin
 /plugin install spine
 ```
 Restart the session.
