@@ -1,0 +1,39 @@
+---
+name: framing
+description: Use before any creative or build work — aligns on intent, scope, and design before code. Grills one question at a time, gives a recommended answer per question, self-answers from the codebase, and HARD-GATES on design approval. Spine's single alignment stage (replaces brainstorming).
+---
+
+# Frame — align before any code
+
+<HARD-GATE>
+Do NOT write code, scaffold, or take any implementation action until you have presented a design and the user has approved it. Applies to every project regardless of perceived simplicity. The ONLY skill you invoke after the FRAME stage is `writing-plans`.
+</HARD-GATE>
+
+## Anti-pattern: "this is too simple to need a design"
+Every task runs FRAME — a todo list, a one-function utility, a config tweak. "Simple" is where unexamined assumptions waste the most work. The design can be short, but you MUST present it and get approval.
+
+## Checklist
+You MUST create a task (todo) for each item below and complete them in order. Do not collapse or skip.
+
+1. **Explore project context** — files, docs, recent commits, `.spine/context.md` glossary if present.
+2. **Config contract (hard sub-gate — config.md is a FRAME deliverable, not deferred to build).** If no `.spine/config.md` exists, create it here by grilling the user, then `Write` `.spine/config.md` directly with the answers — do NOT shell `find`/`cp` and do NOT read the plugin's templates (the hook handles the rest of the skeleton for you; searching for templates just spawns permission prompts). Write exactly this shape, filled in:
+   ```markdown
+   # .spine/config.md — pinned cross-cutting context (asserted before task one)
+   - Stack:            <!-- grilled -->
+   - Test runner:      <!-- grilled -->
+   - DB / project / env: <!-- EXACT project ref, not "the dev one" -->
+   - Auth context:     <!-- identity source -->
+   - Conventions:      <!-- naming, folder layout, invariants -->
+   - Boot assertion:   <!-- startup check that fails loudly on wrong DB/env -->
+   ```
+   The rest of the `.spine/` skeleton (`context.md`, `danger-paths`, `progress.md`) is auto-scaffolded silently by the `pre-tool-use/frame-gate` hook — do NOT create those yourself. Enforced in tooling: the hook DENIES every code write until `.spine/config.md` exists. Create it now; do not wait for the deny.
+3. **Grill — one question per message.** Ask exactly ONE question, then STOP and wait for the answer before the next. For each question give your own recommended answer + reasoning; prefer multiple-choice. Self-answer from the codebase rather than asking whenever you can.
+4. **Force scope boundaries** — in-scope AND explicit out-of-scope.
+5. **Challenge overloaded terms** against `.spine/context.md`; update the glossary the moment a term resolves (terms only, no implementation detail).
+6. **Propose 2–3 approaches** with trade-offs and a recommendation.
+7. **Present the design** in sections scaled to complexity; get approval per section.
+8. **Write the design doc** to `docs/spine/specs/YYYY-MM-DD-<topic>-design.md`.
+9. **Self-review the spec** (placeholders, contradictions, scope, ambiguity); fix inline.
+10. **Ask the user to review the written spec.** On approval, invoke `writing-plans`.
+
+Steps 1–2 run autonomously (no questions to the user). The first time you stop for the user is step 3's grill. That is the intended hand-off point.

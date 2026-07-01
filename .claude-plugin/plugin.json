@@ -1,0 +1,8 @@
+{
+  "name": "spine",
+  "description": "Spine — the company coding agent. Context-isolated subagent engine + enforced disciplines, as one standalone plugin.",
+  "version": "0.1.3",
+  "author": { "name": "bOnline", "email": "liad@bonline.digital" },
+  "license": "MIT",
+  "keywords": ["coding-agent", "tdd", "subagents", "workflow", "spine"]
+}
