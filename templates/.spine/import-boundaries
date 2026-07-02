@@ -1,0 +1,9 @@
+# Spine golden-rule import-boundary guard (Phase 2).
+# One rule per line: <file-glob-being-written> :: <forbidden-substring>
+# A write to a file matching the glob is BLOCKED if its new content contains
+# the forbidden substring anywhere (conservative: whole-content scan, not a
+# real per-language import parser - false positives favor safety here).
+# Blank lines and '#' comments ignored. Examples - edit per repo:
+# apps/vault/**       :: @pulse/
+# apps/pulse/**       :: @vault/
+# apps/*/routes/**    :: shared.crossProduct

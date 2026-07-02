@@ -96,6 +96,42 @@ before execution begins, not one interrupt per discovery mid-plan. If the
 scan is clean, proceed without comment. The review loop remains the net for
 conflicts that only emerge from implementation.
 
+## Task Classification (Phase 2)
+
+Before dispatching each task's implementer, classify it Mode A (isolated,
+narrow brief — the default, ~80% of work) or Mode B (touches a danger path —
+gets wide context and no fast-path). Score three signals and take the
+**highest** tier any one reaches:
+
+1. **Files touched** — mechanical. Run:
+   `sh "$CLAUDE_PLUGIN_ROOT/hooks/classify-task.sh" file1 file2 ...` (or pipe
+   one path per line). It checks each path against `.spine/danger-paths`
+   globs and prints `A` or `B` (with the matched pattern on stderr). This is
+   advisory only — it never blocks a write; Gate D still requires a passing
+   review before merge regardless of mode.
+2. **New external contract** — judgment. Does this task introduce a new
+   public API, a new cross-module dependency, or a new event contract? If
+   yes, treat as Mode B even if the classifier script said A.
+3. **Design ambiguity** — judgment. Is there more than one open design
+   choice the implementer would have to guess at? If yes, Mode B.
+
+**Mode A dispatch:** the standard narrow brief (see File Handoffs above) —
+this task's brief, interfaces from earlier tasks, nothing else.
+
+**Mode B dispatch:** the brief PLUS the directly-coupled modules'/interfaces'
+current code and invariants — deliberately wider than the isolated default,
+because a narrow brief cannot see the seam a Mode B task sits on. State
+explicitly in the dispatch which additional context was included and why.
+Mode B tasks still go through the same per-task review loop; they do not
+skip the final whole-branch review (which Gate D already makes mandatory for
+every merge, Mode A or B).
+
+**Golden-rule import boundaries:** independent of task mode, any write whose
+path matches a `.spine/import-boundaries` rule and whose new content contains
+that rule's forbidden reference is blocked outright by the `boundary-gate`
+hook — this is a mechanical floor (substring scan, not a real import parser),
+not a substitute for the reviewer catching a real architectural violation.
+
 ## Model Selection
 
 Use the least powerful model that can handle each role to conserve cost and increase speed.

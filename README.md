@@ -8,9 +8,18 @@ It is built by merging upstream source from five frameworks into one coherent bu
 
 ## Status
 
-**v0.1.5 — Phase 1 complete.** The full chain runs: FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C). Static acceptance, a whole-branch review, and the live in-session gates all **PASS** — confirmed by both an automated and a manual test session (Gate A branch-scoping, Gate B config-present, Gate C assert-on-hash, silent scaffold, one-FRAME grill).
+**v0.2.0 — Phase 1 complete, Phase 2 (enforcement) built.**
 
-Phases 2 (enforcement: classifier + forced-review hook), 3 (grafts: confidence-tagged grilling, browser QA, capability tracking), and 4 (multi-harness: Cursor, Antigravity) are separate plans, built after Phase 1 passes live.
+**Phase 1** (the walking skeleton): FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C). Static acceptance, a whole-branch review, and the live in-session gates all **PASS** — confirmed by both an automated and a manual test session (Gate A branch-scoping, Gate B config-present, Gate C assert-on-hash, silent scaffold, one-FRAME grill).
+
+**Phase 2** (enforcement) adds three mechanisms on top of Phase 1, none of which change the Phase 1 gates:
+- **Gate D** (`merge-gate`) — `git merge`/`git push` blocked until a passing whole-branch review is recorded for the integrated branch's tip (`.spine/review-receipt`). This is stricter than a danger-path-only trigger: it requires a review before *every* merge, not just ones touching a configured path.
+- **Task classifier** (`classify-task.sh`) — advisory Mode A/B scoring for the build loop: files-touched against `.spine/danger-paths` (mechanical) plus new-contract/ambiguity (judgment, applied by the controller per `subagent-driven-dev`). Mode B tasks get wide context in their dispatch and no fast-path; every task still goes through Gate D regardless of mode.
+- **Golden-rule import-boundary guard** (`boundary-gate`) — a write matching a `.spine/import-boundaries` rule is blocked if its new content contains that rule's forbidden reference. Generalizes "an app's routes/services must not import another product's schema" for a repo with no fixed notion of "product" — configured per-repo, empty by default.
+
+All three are tested directly against the hook scripts (deny/allow/fail-open cases) outside a live session; see acceptance records (kept outside the plugin tree, per Phase 1's own convention).
+
+Phase 3 (grafts: confidence-tagged grilling, browser QA, capability tracking) and Phase 4 (multi-harness: Cursor, Antigravity) remain separate, unbuilt plans.
 
 ## Install (local)
 
@@ -28,33 +37,43 @@ Restart the session.
 
 ## Live acceptance gates (run after disabling Superpowers)
 
+**Phase 1:**
 1. **Install** cleanly (no manifest error).
 2. **Bootstrap present** — the session-start context contains `SPINE ACTIVE`.
 3. **v1 gate** — send `build a react todo list`; `framing` auto-fires and HARD-GATES before any code; exactly one alignment skill fires; no `brainstorming`.
-4. **Config-contract gate** — in a repo with a deliberately wrong `.spine/config.md` DB/project, the build flags the mismatch before task one.
+4. **Config-contract gate (A/B/C)** — in a repo with a deliberately wrong `.spine/config.md` DB/project, the build flags the mismatch before task one; a stale config-hash re-blocks after the file changes.
 
 Already confirmed PASS on this content via prior automated + manual test sessions (repo shipped plugin-only; acceptance records are kept outside the plugin tree).
+
+**Phase 2:**
+5. **Gate D** — `git merge`/`git push` denied without a matching `.spine/review-receipt`; allowed once the controller records one after a clean final review; re-denied if commits land after the receipt (stale tip).
+6. **Task classifier** — a task touching a `.spine/danger-paths` glob classifies Mode B; one that doesn't classifies Mode A.
+7. **Boundary guard** — a write matching a `.spine/import-boundaries` rule with the forbidden reference in its new content is denied; the same write without the reference, or to a non-matching path, is allowed.
+
+Phase 2 mechanisms verified directly against the hook scripts (not yet re-run as live in-session gates from this install path).
 
 ## Layout
 
 ```
 .claude-plugin/   plugin.json + marketplace.json
-hooks/            single session-start bootstrap (run-hook.cmd + bootstrap.sh)
+hooks/            session-start bootstrap, frame-gate (A/B/C), merge-gate (D),
+                  boundary-gate (golden-rule), classify-task.sh, config-hash.sh,
+                  review-receipt.sh, run-hook.cmd
 skills/           10 skills — using-spine, framing, writing-plans, using-git-worktrees,
                   subagent-driven-dev, test-driven-development, systematic-debugging,
                   requesting-code-review, finishing-a-branch, config-contract
 agents/           spine-implementer, spine-task-reviewer, spine-fix, spine-final-reviewer
 commands/         /spine:frame, /spine:build, /spine:finish
-templates/.spine/ per-repo config scaffold (config, danger-paths, context, progress ledger)
+templates/.spine/ per-repo scaffold (config, danger-paths, import-boundaries, context, progress ledger)
 ```
 
 ## How it works (the loop)
 
 1. **FRAME** — grill one question at a time, pin the `.spine/config.md` contract, HARD-GATE on design approval.
-2. **PLAN** — decompose into bite-sized, individually testable tasks.
-3. **BUILD** — controller dispatches a fresh `spine-implementer` per task (TDD: RED→GREEN→REFACTOR), then a `spine-task-reviewer` (tests first, two verdicts, "do not trust the report"), then `spine-fix` for findings. The **controller** owns the `.spine/progress.md` ledger, never the subagent.
-4. **REVIEW** — one `spine-final-reviewer` over the whole branch on the most capable model.
-5. **FINISH** — verify the suite, then merge / PR / keep / discard. Data migrations are never autonomous.
+2. **PLAN** — decompose into bite-sized, individually testable tasks; classify each Mode A/B (Phase 2).
+3. **BUILD** — controller dispatches a fresh `spine-implementer` per task (TDD: RED→GREEN→REFACTOR; wide context for Mode B), then a `spine-task-reviewer` (tests first, two verdicts, "do not trust the report"), then `spine-fix` for findings. The **controller** owns the `.spine/progress.md` ledger, never the subagent. Writes crossing a configured import boundary are blocked outright.
+4. **REVIEW** — one `spine-final-reviewer` over the whole branch on the most capable model; on a clean pass the controller records `.spine/review-receipt`.
+5. **FINISH** — verify the suite, then merge / PR / keep / discard — merge/push is blocked (Gate D) without a matching, current receipt. Data migrations are never autonomous.
 
 ## License
 
