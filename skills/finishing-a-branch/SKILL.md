@@ -37,6 +37,16 @@ Stop. Don't proceed to Step 2.
 
 **If tests pass:** Continue to Step 2.
 
+### Gate D — merge/push requires a passing review receipt
+
+`git merge` and `git push` are blocked by the `merge-gate` hook unless
+`.spine/review-receipt` records a passing whole-branch review for the integrated
+branch's current tip. The controller records this after the final review passes
+(see subagent-driven-dev, "Recording the review receipt"). If you added commits
+after that review, the receipt is stale — re-review and re-record before merging
+or pushing. This is enforcement, not a reminder: the merge/push will fail until the
+receipt matches.
+
 ### Step 2: Detect Environment
 
 **Determine workspace state before presenting options:**

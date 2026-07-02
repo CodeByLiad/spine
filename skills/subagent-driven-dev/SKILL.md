@@ -264,6 +264,24 @@ a ledger file, not only in todos.
 - `git clean -fdx` will destroy the ledger (it's git-ignored scratch); if
   that happens, recover from `git log`.
 
+## Recording the review receipt (Gate D)
+
+After the final whole-branch review returns clean (no unresolved Critical/Important
+findings), the **controller** — while still on the reviewed branch — records the
+review receipt so merge/push unlocks:
+
+`sh "$CLAUDE_PLUGIN_ROOT/hooks/review-receipt.sh" pass`
+
+This writes `.spine/review-receipt` (the branch tip SHA + verdict). The `merge-gate`
+hook (Gate D) blocks `git merge` / `git push` until this receipt matches the
+integrated branch's current tip. Rules:
+
+- Record it ONLY after the final review passes — never before, and never on a
+  CHANGES-NEEDED verdict (the helper writes nothing unless the argument is `pass`).
+- The **controller** records it, never a subagent (the controller owns `.spine/` state).
+- If more commits land after recording, the branch tip moves and the receipt goes
+  stale — re-run the final review and re-record before merging or pushing.
+
 ## Prompt Templates
 
 (Spine ships these as named agents under `agents/`: spine-implementer, spine-task-reviewer, spine-fix, spine-final-reviewer.)
