@@ -1,6 +1,9 @@
 # Spine Phase 1 — Live Autotest (self-contained, run by Claude unattended)
 
-**Build under test:** spine v0.1.3, installed from `D:\Project\Plugins\Spine Plugin`.
+**Build under test:** spine v0.1.4, installed from `D:\Project\Plugins\Spine Plugin`.
+v0.1.4 adds a three-gate frame-gate sequence (A: FRAME approved, B: config.md present,
+C: config.md's content hash matches the recorded `.spine/config-asserted` marker). Gate 4
+below now has a 4f/4g/4h continuation for Gate C — do not stop at 4e.
 
 **How to use this file:** put it alone in an empty throwaway folder, `git init` that folder,
 open Claude Code there (after you've already installed Spine and disabled Superpowers —
@@ -138,11 +141,27 @@ throwaway test app). Re-apply the `config-contract` assertion reasoning against 
 file and state, concretely, which lines contradict which. Then **restore** `config.md` to
 its valid 4c state before moving on — do not leave the repo in the deliberately-broken state.
 
+**4f.** With `config.md` restored to its valid 4c state but **no** `.spine/config-asserted`
+file present, retry the `src/index.ts` write. Expect **DENIED**, citing "config.md is not
+asserted." Quote it verbatim. This is Gate C — distinct from Gate B (config.md existing is
+not the same as config.md being asserted).
+
+**4g.** Record the assertion the way `config-contract`'s skill file specifies: run
+`sh "$CLAUDE_PLUGIN_ROOT/hooks/config-hash.sh" .spine/config.md > .spine/config-asserted`.
+Retry the write. Expect **ALLOWED**.
+
+**4h.** Append one line to `.spine/config.md` (any real change) WITHOUT re-running the hash
+command. Retry the write. Expect **DENIED again** — the stale hash must re-block. Quote it
+verbatim. Then re-run the hash command from 4g to restore a valid, matching state, and
+confirm the write is allowed once more.
+
 **Record for each sub-gate:** PASS/FAIL, and quote the exact deny/allow evidence.
 **FAIL look:** skeleton not scaffolded or scaffolded with a prompt; `config.md` auto-created
 (Gate B never truly fires); code write succeeds with `config.md` absent; the 4e mismatch
 isn't actually identified (i.e., you assert "PASS" without naming the specific contradicting
-lines).
+lines); Gate C allows a write with no `config-asserted` file, or fails to re-block after a
+config change with a stale hash (i.e., you can bypass Gate C by never running config-hash.sh
+at all and it still allows — that would mean Gate C fails open incorrectly).
 
 ---
 
@@ -173,7 +192,7 @@ of what ran). Do not remove or alter anything under the installed plugin's own d
 
 ```
 === SPINE PHASE 1 LIVE AUTOTEST REPORT ===
-build_under_test: 0.1.3 (D:\Project\Plugins\Spine Plugin)
+build_under_test: 0.1.4 (D:\Project\Plugins\Spine Plugin)
 date: <today, from your own context>
 fresh_session: yes/no
 superpowers_disabled: yes/no (brainstorming absent from available skills?)
@@ -189,6 +208,9 @@ gate_4b: PASS|FAIL | deny_text: "<verbatim>" | config_auto_created: yes/no
 gate_4c: PASS|FAIL | write_allowed: yes/no
 gate_4d: PASS|FAIL | self_check_result: <consistent/not, why>
 gate_4e: PASS|FAIL | contradiction_introduced: "<what you edited>" | contradiction_identified: "<the specific lines you flagged, or FAIL if you couldn't>"
+gate_4f: PASS|FAIL | deny_text: "<verbatim, config.md present but not asserted>"
+gate_4g: PASS|FAIL | write_allowed_after_hash_recorded: yes/no
+gate_4h: PASS|FAIL | deny_text_on_stale_hash: "<verbatim>" | allowed_after_re_assert: yes/no
 gate_5: PASS|FAIL | prompt_tally: <count> | which_files: <list> | edit_mode_caveat: "<honest statement of what your mode structurally could/couldn't show>"
 
 anti_bypass_self_check:
