@@ -4,11 +4,11 @@
 
 Spine is a context-isolated subagent engine with enforced disciplines, packaged as a single plugin. A **controller** runs the build autonomously between two human gates, dispatching fresh isolated subagents (implementer, reviewer, fix, final reviewer) fed inputs as files. It codes anything — software, websites, any stack.
 
-It is built by merging upstream source from five frameworks into one coherent bundle: Superpowers (the engine), mattpocock/skills (the FRAME alignment stage), and the ideas of ECC, gstack, and agent-skills — none of those three contribute copied files. See `docs/spine/specs/2026-06-29-spine-plugin-design.md` for the full design.
+It is built by merging upstream source from five frameworks into one coherent bundle: Superpowers (the engine), mattpocock/skills (the FRAME alignment stage), and the ideas of ECC, gstack, and agent-skills — none of those three contribute copied files.
 
 ## Status
 
-**v0.1.2 — Phase 1 walking skeleton.** The full chain runs: FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config and a boot assertion. Static acceptance and a whole-branch review pass. The four live in-session gates (below) are pending a clean test session.
+**v0.1.5 — Phase 1 complete.** The full chain runs: FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C). Static acceptance, a whole-branch review, and the live in-session gates all **PASS** — confirmed by both an automated and a manual test session (Gate A branch-scoping, Gate B config-present, Gate C assert-on-hash, silent scaffold, one-FRAME grill).
 
 Phases 2 (enforcement: classifier + forced-review hook), 3 (grafts: confidence-tagged grilling, browser QA, capability tracking), and 4 (multi-harness: Cursor, Antigravity) are separate plans, built after Phase 1 passes live.
 
@@ -33,7 +33,7 @@ Restart the session.
 3. **v1 gate** — send `build a react todo list`; `framing` auto-fires and HARD-GATES before any code; exactly one alignment skill fires; no `brainstorming`.
 4. **Config-contract gate** — in a repo with a deliberately wrong `.spine/config.md` DB/project, the build flags the mismatch before task one.
 
-Record results in `docs/ACCEPTANCE.md`.
+Already confirmed PASS on this content via prior automated + manual test sessions (repo shipped plugin-only; acceptance records are kept outside the plugin tree).
 
 ## Layout
 
