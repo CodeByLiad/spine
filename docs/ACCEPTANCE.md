@@ -1,7 +1,9 @@
 # Spine Phase 1 — Walking Skeleton Acceptance (ported build)
 
-**Date:** 2026-07-01
-**Build:** v0.1.3, ported byte-identical from `D:\Project\AI Agents\spine@746366c` (that build's own Phase 1 gates 3/4/5 previously ran PASS live — see `docs/My-observe.md`). This repo is a fresh git history at the new standalone location `D:\Project\Plugins\Spine Plugin`.
+**Date:** 2026-07-02
+**Build:** v0.1.4, ported from `D:\Project\AI Agents\spine@746366c` (v0.1.3) then synced forward with that repo's own 5-commit Gate C addition (config-hash helper, hash-bound assertion gate in `frame-gate.sh`, `config-contract` marker-recording step, `.spine/.gitignore` scaffold entry). This repo is a fresh git history at the new standalone location `D:\Project\Plugins\Spine Plugin`.
+
+**Live-gate precedent:** the old repo, at the *same logical content* now ported here (0.1.4, Gate A/B/C), already ran a full live adversarial autotest in a real Claude Code session (`D:\Project\Test\Spine\spine-test\docs\PHASE1-AUTO-TEST-REPORT.md`, `OVERALL: PASS`) — Gate 2 bootstrap, Gate 3 framing/grill, Gate 4a/4b/4c-i/4c-ii/4c-iii (the full A→B→C→allow→re-block sequence), Gate 5 no-prompt-storm, all PASS with verbatim hook stderr quoted. That confirms the *mechanism* works live. What's still open is confirming it live from *this* install path specifically (see bottom section) — the content is proven, the location isn't yet.
 
 ## Port integrity — PASS
 
@@ -36,7 +38,10 @@ using-git-worktrees, using-spine, writing-plans.
 | Side effect of Gate A: skeleton (`context.md`, `danger-paths`, `progress.md`) auto-scaffolded by the hook's own `cp`; `config.md`/`frame-approved` correctly absent | PASS |
 | Gate B: `frame-approved` present but `config.md` absent → DENY (exit 2), correct message | PASS |
 | Gate B does NOT auto-create `config.md` (gate stays meaningful) | PASS |
-| Gate C: both markers present → ALLOW (exit 0), no deadlock | PASS |
+| Gate C-i: `config.md` present, no `config-asserted` marker → DENY ("SPINE ASSERT GATE BLOCKED", config never asserted) | PASS |
+| Gate C-ii: correct hash recorded via `hooks/config-hash.sh` → ALLOW, no deadlock | PASS |
+| Gate C-iii: `config.md` mutated WITHOUT re-recording the hash → RE-DENY (stale hash correctly detected) | PASS |
+| Gate C-iv: config reverted + hash re-recorded → ALLOW again | PASS |
 | Non-code file (e.g. `README.md`) always allowed, even with no `.spine/` at all | PASS |
 | Any write under `.spine/` itself always allowed (no self-deadlock) | PASS |
 | Branch scoping: approval recorded for `feature-x` does NOT unlock a write on `master` — re-denies correctly | PASS |
@@ -54,4 +59,4 @@ These need the actual Claude Code plugin manager, which is operator-only (intera
 
 Every mechanism these 4 gates exercise has already been verified above at the content/logic level, against a build byte-identical to one whose live gates already passed (Superpowers disabled). What's left is confirming the *harness* wires it up the same way from this new install location. Follow `docs/PHASE1-LIVE-GATES.md` (paths updated for this location) and record results back into this file.
 
-**Phase 1 status: everything automatable from outside a live session is 100% green (7/7 static + 10/10 hook-mechanics checks). The 4 interactive gates above are the one remaining step, and per this project's own established methodology they are operator-only — not something a subagent can drive.**
+**Phase 1 status: everything automatable from outside a live session is 100% green (7/7 static + 13/13 hook-mechanics checks including the new Gate C sequence). Live-gate mechanics are independently proven at this exact content level via the old repo's autotest. The 4 interactive gates above are the one remaining step tied specifically to *this* install path, and per this project's own established methodology they are operator-only — not something a subagent can drive.**

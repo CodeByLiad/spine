@@ -43,7 +43,7 @@ plugin_root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." 2>/dev/null && p
 tpl="$plugin_root/templates/.spine"
 if [ -d "$tpl" ]; then
   mkdir -p "$cwd/.spine" 2>/dev/null
-  for f in context.md danger-paths progress.md; do
+  for f in context.md danger-paths progress.md .gitignore; do
     [ -f "$tpl/$f" ] && [ ! -f "$cwd/.spine/$f" ] && cp "$tpl/$f" "$cwd/.spine/$f" 2>/dev/null
   done
 fi
@@ -82,6 +82,26 @@ if [ ! -f "$config" ]; then
   echo "conventions) per the \`config-contract\` skill, scaffolding from templates/.spine/." >&2
   echo "(Spine rule #5: pin cross-cutting context before task one.)" >&2
   exit 2
+fi
+
+# --- Gate C: config contract asserted against CURRENT config (rule #5) ---
+# FRAME approved and config.md present, but was the contract actually asserted
+# against THIS content? The agent runs the boot assertion (only it can know the
+# target is right) and records the config hash on pass; here we recompute and
+# compare. A changed contract => stale hash => blocked until re-asserted. This is
+# what makes "wrong DB/env" fail before task one, mechanically (Phase-1 gate 4e).
+asserted="$cwd/.spine/config-asserted"
+cfg_hash=$(sh "$plugin_root/hooks/config-hash.sh" "$config" 2>/dev/null)
+if [ -n "$cfg_hash" ]; then          # empty => no hash tool => fail-open, skip Gate C
+  recorded=""
+  [ -f "$asserted" ] && recorded=$(cat "$asserted" 2>/dev/null | tr -d ' \r\n')
+  if [ "$cfg_hash" != "$recorded" ]; then
+    echo "SPINE ASSERT GATE BLOCKED this write." >&2
+    echo "File: $fp_norm (code) — .spine/config.md is not asserted (config changed or never asserted)." >&2
+    echo "Run the config-contract boot assertion; on pass it records the config hash to .spine/config-asserted." >&2
+    echo "(Spine rule #5: pin AND assert cross-cutting context before task one; a changed contract must be re-asserted.)" >&2
+    exit 2
+  fi
 fi
 
 exit 0

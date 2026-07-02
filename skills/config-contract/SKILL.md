@@ -12,3 +12,6 @@ Isolation is blind to "are we pointed at the right place." Per-task gates verify
 2. Pin: which DB/project/env, which auth context, the global conventions and invariants.
 3. **Assert it.** Wherever mechanically possible, turn the contract into a startup check that fails loudly if violated (app refuses to boot / test baseline fails if connected to the wrong project). A prose-only contract is advisory = skipped.
 4. No build task is dispatched until this assertion passes (or, where it cannot be asserted mechanically, a named human explicitly confirms the seam).
+5. **Record the assertion (unlocks the code-write gate).** The moment the assertion passes (or the named human confirms), record the config hash:
+   `sh "$CLAUDE_PLUGIN_ROOT/hooks/config-hash.sh" .spine/config.md > .spine/config-asserted`
+   The `frame-gate` hook's Gate C blocks every code write until this marker matches the current `.spine/config.md`. Do NOT write it before the assertion passes, and do NOT hand-edit it. If you later change `config.md`, re-run the assertion and re-record — the hash binding forces this.
