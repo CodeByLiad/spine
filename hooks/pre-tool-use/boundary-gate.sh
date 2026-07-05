@@ -18,15 +18,29 @@
 
 input=$(cat)
 bslash=$(printf '\134')
+bb="$bslash$bslash"
+bbbb="$bslash$bslash$bslash$bslash"
 
 extract_field() {  # extract_field <field-name> <json-blob>
   printf '%s' "$2" | grep -oE "\"$1\"[[:space:]]*:[[:space:]]*\"([^\"$bslash]|$bslash$bslash.)*\"" | head -1 | sed -E "s/^\"$1\"[[:space:]]*:[[:space:]]*\"//; s/\"\$//"
 }
 
+# Normalize path separators: JSON-escaped Windows paths carry a literal
+# double-backslash per separator (the raw bytes of the JSON escape "\\"),
+# so this must collapse a run of 4 raw backslash BYTES (which is what a
+# grep -oE JSON-string extraction leaves in the shell variable for one
+# path separator) to a single slash FIRST, then any leftover lone
+# backslash to a slash. A naive one-pass `tr` of single backslash chars
+# to slashes doubles separators instead of collapsing them, which made
+# every glob rule silently inert on Windows - confirmed by a live test.
+norm_path() {
+  printf '%s' "$1" | sed "s/${bbbb}/\//g; s/${bb}/\//g"
+}
+
 fp=$(extract_field file_path "$input")
 [ -z "$fp" ] && exit 0
 
-fp_norm=$(printf '%s' "$fp" | tr "$bslash" '/' 2>/dev/null)
+fp_norm=$(norm_path "$fp")
 
 case "$fp_norm" in
   */.spine/*|.spine/*) exit 0 ;;
@@ -34,7 +48,7 @@ esac
 
 cwd=$(extract_field cwd "$input")
 [ -z "$cwd" ] && cwd=$(pwd)
-cwd=$(printf '%s' "$cwd" | tr "$bslash" '/' 2>/dev/null)
+cwd=$(norm_path "$cwd")
 
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || root="$cwd"
 rules="$root/.spine/import-boundaries"

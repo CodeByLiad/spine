@@ -10,6 +10,15 @@
 # token actually resolves to a commit. A merge/push that redirects the target repo
 # (-C / --git-dir / --work-tree) is denied outright, because the receipt lookup runs
 # against the session cwd and cannot verify a different target repository.
+#
+# A command containing a shell metacharacter that can chain additional commands
+# (; & | ` $() is ALSO denied outright once a merge/push subcommand is found,
+# rather than falling through to the unresolvable-target fail-open path. A live
+# test found that plain word-splitting turns "git merge master; echo done" into
+# tokens "master;" "echo" "done" — none of which resolve to a commit — so the
+# original fail-open logic let the real `git merge master` run ungated. Denying
+# on any chaining metacharacter closes that; it does not weaken the fail-open
+# behavior for genuinely unparseable single (non-chained) commands.
 input=$(cat)
 
 cmd=$(printf '%s' "$input" | grep -oE '"command"[[:space:]]*:[[:space:]]*"([^"\\]|\\.)*"' | head -1 | sed -E 's/^"command"[[:space:]]*:[[:space:]]*"//; s/"$//')
@@ -44,6 +53,15 @@ while [ $# -gt 0 ]; do
 done
 [ "$sub" = "merge" ] || [ "$sub" = "push" ] || exit 0
 # remaining positional params ($@) are the subcommand's args
+
+case "$cmd" in
+  *';'*|*'&'*|*'|'*|*'`'*|*'$('*)
+    echo "SPINE REVIEW GATE BLOCKED this merge/push." >&2
+    echo "Command: $cmd — contains a shell metacharacter that can chain or hide additional commands past this parser's plain word-splitting. A merge/push inside a compound command cannot be safely verified; run it as its own standalone command." >&2
+    echo "(Spine rule #3: a gate that depends on willpower is not a gate.)" >&2
+    exit 2
+    ;;
+esac
 
 if [ "$redir" -eq 1 ]; then
   echo "SPINE REVIEW GATE BLOCKED this merge/push." >&2
