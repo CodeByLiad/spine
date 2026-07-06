@@ -8,18 +8,23 @@ It is built by merging upstream source from five frameworks into one coherent bu
 
 ## Status
 
-**v0.2.0 — Phase 1 complete, Phase 2 (enforcement) built.**
+**v0.3.0 — Phase 1 + Phase 2 closed (live-confirmed, 3 rounds). Phase 3 in progress (1 of 3 parts done).**
 
-**Phase 1** (the walking skeleton): FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C). Static acceptance, a whole-branch review, and the live in-session gates all **PASS** — confirmed by both an automated and a manual test session (Gate A branch-scoping, Gate B config-present, Gate C assert-on-hash, silent scaffold, one-FRAME grill).
+**Phase 1** (the walking skeleton): FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C).
 
-**Phase 2** (enforcement) adds three mechanisms on top of Phase 1, none of which change the Phase 1 gates:
-- **Gate D** (`merge-gate`) — `git merge`/`git push` blocked until a passing whole-branch review is recorded for the integrated branch's tip (`.spine/review-receipt`). This is stricter than a danger-path-only trigger: it requires a review before *every* merge, not just ones touching a configured path.
-- **Task classifier** (`classify-task.sh`) — advisory Mode A/B scoring for the build loop: files-touched against `.spine/danger-paths` (mechanical) plus new-contract/ambiguity (judgment, applied by the controller per `subagent-driven-dev`). Mode B tasks get wide context in their dispatch and no fast-path; every task still goes through Gate D regardless of mode.
-- **Golden-rule import-boundary guard** (`boundary-gate`) — a write matching a `.spine/import-boundaries` rule is blocked if its new content contains that rule's forbidden reference. Generalizes "an app's routes/services must not import another product's schema" for a repo with no fixed notion of "product" — configured per-repo, empty by default.
+**Phase 2** (enforcement) adds three mechanisms on top of Phase 1:
+- **Gate D** (`merge-gate`) — `git merge`/`git push` blocked until a passing whole-branch review is recorded for the integrated branch's tip (`.spine/review-receipt`). Requires a review before *every* merge, not just danger-path-triggered ones. Segment-based command parsing closes chaining bypasses (`git merge x; echo y`, `git branch x; git merge y`) without false-positiving on unrelated commands that merely mention "git"/"merge" as text.
+- **Task classifier** (`classify-task.sh`) — advisory Mode A/B scoring: files-touched against `.spine/danger-paths` (mechanical) plus new-contract/ambiguity (judgment, per `subagent-driven-dev`). Mode B tasks get wide context and no fast-path; every task still goes through Gate D regardless of mode.
+- **Golden-rule import-boundary guard** (`boundary-gate`) — a write matching a `.spine/import-boundaries` rule is blocked if its new content contains that rule's forbidden reference. Generalizes "an app's routes/services must not import another product's schema" for a repo with no fixed notion of "product."
 
-All three are tested directly against the hook scripts (deny/allow/fail-open cases) outside a live session; see acceptance records (kept outside the plugin tree, per Phase 1's own convention).
+**Phase 1 + 2 status:** three live test rounds (v0.2.0 found 2 real defects → v0.2.1 fixed them, found a broader variant of one → v0.2.2 fixed that cleanly) — all gates PASS live, no known open defects. Full history in the acceptance records (kept outside the plugin tree).
 
-Phase 3 (grafts: confidence-tagged grilling, browser QA, capability tracking) and Phase 4 (multi-harness: Cursor, Antigravity) remain separate, unbuilt plans.
+**Phase 3** (grafts) — three parts, built one at a time:
+- ✅ **Confidence-tagged grilling** — `framing`'s grill now tags each question with the agent's honest 0–100% confidence in its own recommendation, asks lowest-confidence items first, and stops once overall design confidence reaches ~95% (remaining high-confidence items become stated assumptions instead of spent questions).
+- ⬜ Capability tracking (review-correction depth — skill-atrophy early warning) — not started.
+- ⬜ Browser QA (gstack-style, Playwright/Chrome DevTools MCP) — not started.
+
+Phase 4 (multi-harness: Cursor, Antigravity) remains a separate, unbuilt plan.
 
 ## Install (local)
 
@@ -69,7 +74,7 @@ templates/.spine/ per-repo scaffold (config, danger-paths, import-boundaries, co
 
 ## How it works (the loop)
 
-1. **FRAME** — grill one question at a time, pin the `.spine/config.md` contract, HARD-GATE on design approval.
+1. **FRAME** — grill one question at a time, each confidence-tagged (0–100%, lowest first, until ~95% overall), pin the `.spine/config.md` contract, HARD-GATE on design approval.
 2. **PLAN** — decompose into bite-sized, individually testable tasks; classify each Mode A/B (Phase 2).
 3. **BUILD** — controller dispatches a fresh `spine-implementer` per task (TDD: RED→GREEN→REFACTOR; wide context for Mode B), then a `spine-task-reviewer` (tests first, two verdicts, "do not trust the report"), then `spine-fix` for findings. The **controller** owns the `.spine/progress.md` ledger, never the subagent. Writes crossing a configured import boundary are blocked outright.
 4. **REVIEW** — one `spine-final-reviewer` over the whole branch on the most capable model; on a clean pass the controller records `.spine/review-receipt`.

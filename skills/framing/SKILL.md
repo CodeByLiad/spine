@@ -1,6 +1,6 @@
 ---
 name: framing
-description: Use before any creative or build work — aligns on intent, scope, and design before code. Grills one question at a time, gives a recommended answer per question, self-answers from the codebase, and HARD-GATES on design approval. Spine's single alignment stage (replaces brainstorming).
+description: Use before any creative or build work — aligns on intent, scope, and design before code. Grills one question at a time, each confidence-tagged (0–100%, lowest first, until ~95% overall), gives a recommended answer per question, self-answers from the codebase, and HARD-GATES on design approval. Spine's single alignment stage (replaces brainstorming).
 ---
 
 # Frame — align before any code
@@ -27,7 +27,10 @@ You MUST create a task (todo) for each item below and complete them in order. Do
    - Boot assertion:   <!-- startup check that fails loudly on wrong DB/env -->
    ```
    The rest of the `.spine/` skeleton (`context.md`, `danger-paths`, `progress.md`) is auto-scaffolded silently by the `pre-tool-use/frame-gate` hook — do NOT create those yourself. Enforced in tooling: the hook DENIES every code write until `.spine/config.md` exists. Create it now; do not wait for the deny.
-3. **Grill — one question per message.** Ask exactly ONE question, then STOP and wait for the answer before the next. For each question give your own recommended answer + reasoning; prefer multiple-choice. Self-answer from the codebase rather than asking whenever you can.
+3. **Grill — one question per message, confidence-tagged (Phase 3).** Ask exactly ONE question, then STOP and wait for the answer before the next. For each question give: your own recommended answer + reasoning, and a **confidence number (0–100%)** — how sure you are that recommendation is right without the user's input. Prefer multiple-choice. Self-answer from the codebase rather than asking whenever you can.
+   - **Order by confidence, lowest first.** The lowest-confidence open decision is where a question earns the most — ask it before higher-confidence ones.
+   - **Run until overall design confidence reaches ~95%**, not a fixed question count. If every remaining open decision is already ≥90% confident, stop grilling and state those as assumptions in the design (step 7) instead of spending a question on them — the number is what tells you (and the user) where NOT to spend a question.
+   - A confidence number is your own honest estimate, not a formality — do not pad it to justify skipping a question you're actually unsure about.
 4. **Force scope boundaries** — in-scope AND explicit out-of-scope.
 5. **Challenge overloaded terms** against `.spine/context.md`; update the glossary the moment a term resolves (terms only, no implementation detail).
 6. **Propose 2–3 approaches** with trade-offs and a recommendation.

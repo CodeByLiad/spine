@@ -6,7 +6,7 @@
     {
       "name": "spine",
       "description": "Spine — the company coding agent (standalone).",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "source": "./"
     }
   ]
