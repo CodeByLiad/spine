@@ -25,6 +25,21 @@ extract_field() {  # extract_field <field-name> <json-blob>
   printf '%s' "$2" | grep -oE "\"$1\"[[:space:]]*:[[:space:]]*\"([^\"$bslash]|$bslash$bslash.)*\"" | head -1 | sed -E "s/^\"$1\"[[:space:]]*:[[:space:]]*\"//; s/\"\$//"
 }
 
+# Un-escape JSON string escapes left raw by extract_field's regex capture
+# (it deliberately keeps `\X` two-byte sequences intact so the surrounding
+# quote-boundary match works - it does not interpret them). A forbidden
+# reference containing a literal quote (very common: import statements are
+# almost always quoted, e.g. `from "moduleB/schema"`) never matched real
+# file content because the content still carried the raw two-byte `\"`
+# JSON escape instead of a plain `"` - found by a live test. Order matters:
+# protect real escaped-backslash sequences behind a placeholder BEFORE
+# un-escaping `\"`, or a content bytes like `\\"` (an escaped backslash
+# immediately followed by a real quote) would be mis-read.
+placeholder="@@SPINE_BOUNDARY_BSLASH@@"
+unescape_json() {
+  printf '%s' "$1" | sed "s/$bbbb/$placeholder/g" | sed "s/$bslash$bslash\"/\"/g" | sed "s/$placeholder/$bslash$bslash/g"
+}
+
 # Normalize path separators: JSON-escaped Windows paths carry a literal
 # double-backslash per separator (the raw bytes of the JSON escape "\\"),
 # so this must collapse a run of 4 raw backslash BYTES (which is what a
@@ -73,6 +88,7 @@ c2=$(printf '%s' "$input" | grep -oE "\"new_string\"[[:space:]]*:[[:space:]]*\"(
 [ -n "$c2" ] && content="$content
 $c2"
 [ -z "$content" ] && exit 0
+content=$(unescape_json "$content")
 
 tmp_rules=$(mktemp 2>/dev/null) || tmp_rules="/tmp/.spine-boundary-rules.$$"
 sed -e 's/[[:space:]]*#.*$//' "$rules" | grep -v '^[[:space:]]*$' > "$tmp_rules"
