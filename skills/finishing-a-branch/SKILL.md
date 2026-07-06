@@ -47,6 +47,14 @@ after that review, the receipt is stale — re-review and re-record before mergi
 or pushing. This is enforcement, not a reminder: the merge/push will fail until the
 receipt matches.
 
+### Capability check (Phase 3, informational — never blocks)
+
+If `.spine/capability-log.md` exists, glance at this branch's entries before
+presenting options. If every entry across the branch is style-only
+(`logic=0`), say so plainly to the user in one line alongside the options —
+that's the skill-atrophy signal the log exists to surface, not proof of a
+problem, but worth a human glance. Do not withhold or delay finishing over it.
+
 ### Step 2: Detect Environment
 
 **Determine workspace state before presenting options:**

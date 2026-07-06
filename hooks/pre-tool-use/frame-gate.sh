@@ -43,7 +43,7 @@ plugin_root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." 2>/dev/null && p
 tpl="$plugin_root/templates/.spine"
 if [ -d "$tpl" ]; then
   mkdir -p "$cwd/.spine" 2>/dev/null
-  for f in context.md danger-paths progress.md .gitignore; do
+  for f in context.md danger-paths progress.md capability-log.md .gitignore; do
     [ -f "$tpl/$f" ] && [ ! -f "$cwd/.spine/$f" ] && cp "$tpl/$f" "$cwd/.spine/$f" 2>/dev/null
   done
 fi

@@ -318,6 +318,34 @@ integrated branch's current tip. Rules:
 - If more commits land after recording, the branch tip moves and the receipt goes
   stale — re-run the final review and re-record before merging or pushing.
 
+## Capability tracking (Phase 3) — review-correction depth
+
+After EVERY task review and after the final whole-branch review, the **controller**
+tallies that review's findings by category ([LOGIC] vs [STYLE], per the reviewer
+prompt templates) and appends one line to `.spine/capability-log.md`:
+
+`Task N: logic=<count> style=<count> verdict=<approved|needs-fixes>` (or
+`Final review: logic=<count> style=<count> verdict=<ready|with-fixes|not-ready>`
+for the whole-branch review).
+
+This is visibility only — not a gate, nothing blocks on it. The question it
+answers over time: are reviewers still catching real correctness bugs, or has
+review drifted to style-only findings? That drift is the skill-atrophy early
+warning the docs name explicitly — it does not fix anything by itself, but a
+team that can see the drift can act on it (protect deliberate from-scratch
+authoring time, rotate reviewers, spot-check a "clean" branch by hand). A team
+that can't see it just erodes quietly.
+
+- The **controller** appends this, never a subagent (same ownership rule as the
+  progress ledger — the controller has no incentive to skip the write and
+  doesn't lose context immediately after, unlike the reviewer that just
+  returned).
+- Do this even when a review is clean (logic=0 style=0) — a real "nothing to
+  find" entry is data; a missing entry just looks like the log wasn't kept.
+- Do not editorialize in the log line itself; if a run of style-only entries
+  is worth flagging to the human, say so in your own message, not by changing
+  the log format.
+
 ## Prompt Templates
 
 (Spine ships these as named agents under `agents/`: spine-implementer, spine-task-reviewer, spine-fix, spine-final-reviewer.)

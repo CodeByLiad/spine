@@ -98,6 +98,12 @@ Subagent (spine-final-reviewer):
     - What's wrong
     - Why it matters
     - How to fix (if not obvious)
+    - Category tag — **[LOGIC]** (a real correctness bug, missed edge case,
+      broken error handling, security issue) or **[STYLE]** (naming,
+      formatting, organization, taste — behaves correctly either way). This
+      is a capability-tracking signal (Phase 3), not a severity judgment —
+      tag your honest read, don't default to [STYLE] to avoid the more
+      demanding [LOGIC] read.
 
     ### Recommendations
     [Improvements for code quality, architecture, or process]
@@ -131,7 +137,7 @@ Subagent (spine-final-reviewer):
 - `[BASE_SHA]` — starting commit
 - `[HEAD_SHA]` — ending commit
 
-**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
+**Reviewer returns:** Strengths, Issues (Critical / Important / Minor, each tagged [LOGIC] or [STYLE] — Phase 3 capability tracking), Recommendations, Assessment
 
 ## Example Output
 
@@ -144,18 +150,18 @@ Subagent (spine-final-reviewer):
 ### Issues
 
 #### Important
-1. **Missing help text in CLI wrapper**
+1. **Missing help text in CLI wrapper** [STYLE]
    - File: index-conversations:1-31
    - Issue: No --help flag, users won't discover --concurrency
    - Fix: Add --help case with usage examples
 
-2. **Date validation missing**
+2. **Date validation missing** [LOGIC]
    - File: search.ts:25-27
    - Issue: Invalid dates silently return no results
    - Fix: Validate ISO format, throw error with example
 
 #### Minor
-1. **Progress indicators**
+1. **Progress indicators** [STYLE]
    - File: indexer.ts:130
    - Issue: No "X of Y" counter for long operations
    - Impact: Users don't know how long to wait

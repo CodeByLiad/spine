@@ -156,7 +156,15 @@ Subagent (spine-task-reviewer):
     #### Minor (Nice to Have)
 
     For each issue: file:line, what's wrong, why it matters, how to fix
-    (if not obvious).
+    (if not obvious), and a category tag — **[LOGIC]** (the code would behave
+    wrong: a correctness bug, a missed edge case, broken error handling, a
+    security issue, a test that doesn't actually verify behavior) or
+    **[STYLE]** (naming, formatting, organization, taste — the code behaves
+    correctly either way). This is a capability-tracking signal (Phase 3),
+    not a severity judgment — a Minor finding can be [LOGIC] (an edge case
+    that rarely triggers) and a Critical one can, in principle, be [STYLE]
+    (though that combination should be rare). Tag your honest read; do not
+    default to [STYLE] to avoid the more demanding [LOGIC] read.
 
     ### Assessment
 
@@ -182,7 +190,8 @@ Subagent (spine-task-reviewer):
   wrote; the package never enters the controller's context)
 
 **Reviewer returns:** Spec Compliance verdict (✅/❌/⚠️), Strengths, Issues
-(Critical/Important/Minor), Task quality verdict
+(Critical/Important/Minor, each tagged [LOGIC] or [STYLE] — Phase 3 capability
+tracking), Task quality verdict
 
 A fix dispatch can address spec gaps and quality findings together;
 re-review after fixes covers both verdicts.
