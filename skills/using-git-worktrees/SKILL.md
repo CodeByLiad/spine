@@ -120,7 +120,17 @@ if [ -f go.mod ]; then go mod download; fi
 
 ## Step 3: Verify Clean Baseline
 
-Run tests to ensure workspace starts clean:
+**Working tree must be clean before any autonomous run** — uncommitted changes at
+the start mean per-task commits can't be cleanly rolled back later:
+
+```bash
+git status --porcelain
+```
+
+**If not empty:** Report the uncommitted files, ask whether to commit/stash them or
+proceed anyway. Do not silently start autonomous work over dirty state.
+
+Then run tests to ensure workspace starts clean:
 
 ```bash
 # Use project-appropriate command

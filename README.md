@@ -8,9 +8,11 @@ It is built by merging upstream source from five frameworks into one coherent bu
 
 ## Status
 
-**v0.4.1 — Phase 1 + Phase 2 closed (live-confirmed, 6 rounds). Phase 3 complete (3 of 3 parts) + 3 graft gaps closed.**
+**v0.4.2 — Phase 1 + Phase 2 closed (live-confirmed, 6 rounds). Phase 3 complete (3 of 3 parts) + 5 graft gaps closed.**
 
 An audit against the stage-by-stage base/graft table (the design doc's own summary of what each stage should carry) found 3 real gaps that had been missed while building the hook-backed mechanisms: `writing-plans` never actually used mattpocock's seam/deep-module vocabulary (the word "seam" appeared, but not the practice); both reviewer prompts checked tests but never read them *first* (agent-skills' specific graft); `finishing-a-branch` never mentioned shipping discipline (feature flags, incremental rollout, reversible-by-default). All three closed in v0.4.1 — prose/skill changes, not hook-testable; correctness means "does a real review/plan/finish actually follow this," which needs a live session to confirm, same as the other prose-only grafts.
+
+A second audit against the full process-doc corpus (COMPOUND stage, clean-baseline precondition) found 2 more gaps, closed in v0.4.2: the COMPOUND stage's retro + doc-sync habit (§9 of the process doc) was never built — only capability tracking, its third item, existed — now added to `finishing-a-branch` as an informational check; and `using-git-worktrees`' Step 3 verified tests pass but never checked `git status --porcelain` was clean before starting autonomous work, so a dirty starting tree could silently make later per-task commits unrollbackable — now checked explicitly before the baseline test run.
 
 **Phase 1** (the walking skeleton): FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C).
 

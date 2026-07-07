@@ -67,6 +67,17 @@ finishing over it. For a Mode-B task, also note if the recorded `flows`
 only reference one product — dual-product QA is the requirement, not a
 single-product pass.
 
+### Compound check (informational — never blocks)
+
+Before presenting options, close the loop:
+
+- **Doc sync.** If this branch changed behavior a README/architecture doc describes,
+  update that doc to match the shipped diff now, while the change is fresh — don't
+  leave docs to drift. Propose the doc edit; the user approves it like any other change.
+- **Retro.** In one line, name anything from this cycle worth reusing next time — a
+  prompt that worked well, a plan shape, a bug class worth a new red flag somewhere.
+  If nothing stands out, say so and move on; this is not a mandatory writeup.
+
 ### Step 2: Detect Environment
 
 **Determine workspace state before presenting options:**
