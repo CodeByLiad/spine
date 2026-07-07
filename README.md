@@ -28,13 +28,19 @@ An audit against the stage-by-stage base/graft table (the design doc's own summa
 
 Phase 4 (multi-harness: Cursor, Antigravity) remains a separate, unbuilt plan.
 
-## Install (local)
+## Install
 
+```
+/plugin marketplace add mdliad-se/spine
+/plugin install spine
+```
+Restart the session. (Private repo — installers need access granted on `mdliad-se/spine`.)
+
+**Local development install** (working on Spine itself, no GitHub round-trip):
 ```
 /plugin marketplace add D:\Project\Plugins\Spine Plugin
 /plugin install spine
 ```
-Restart the session.
 
 > ### ⚠️ Conflict: disable Superpowers before testing Spine
 > Spine **absorbs** Superpowers — running both at once clashes (two session-start bootstraps, duplicate skill names, and Superpowers' `brainstorming` still auto-fires, which invalidates Spine's "exactly one FRAME skill" gate). Before testing or using Spine:
