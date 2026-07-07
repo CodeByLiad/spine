@@ -124,7 +124,8 @@ because a narrow brief cannot see the seam a Mode B task sits on. State
 explicitly in the dispatch which additional context was included and why.
 Mode B tasks still go through the same per-task review loop; they do not
 skip the final whole-branch review (which Gate D already makes mandatory for
-every merge, Mode A or B).
+every merge, Mode A or B). A Mode B task additionally requires a dual-product
+`browser-qa` pass before finishing (Phase 3) — see that skill.
 
 **Golden-rule import boundaries:** independent of task mode, any write whose
 path matches a `.spine/import-boundaries` rule and whose new content contains
@@ -495,6 +496,7 @@ Done!
 - **using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
 - **writing-plans** - Creates the plan this skill executes
 - **requesting-code-review** - Code review template for the final whole-branch review
+- **browser-qa** - Real-running-app verification before finishing, for any user-facing task; mandatory dual-product pass for Mode B
 - **finishing-a-branch** - Complete development after all tasks
 
 **Subagents should use:**

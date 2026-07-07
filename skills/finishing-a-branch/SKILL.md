@@ -55,6 +55,18 @@ presenting options. If every entry across the branch is style-only
 that's the skill-atrophy signal the log exists to surface, not proof of a
 problem, but worth a human glance. Do not withhold or delay finishing over it.
 
+### QA check (Phase 3, informational — never blocks)
+
+For a user-facing change or any Mode-B task, check `.spine/qa-receipt` before
+presenting options. If it's absent, or its `sha` doesn't match the current
+branch tip (stale — commits landed after the last QA pass), say so plainly
+in one line: browser QA per `browser-qa` either never ran or is stale for
+this tip. This is process discipline, not a code-enforced gate (see
+`browser-qa`'s "Honest limitation") — note it, do not withhold or delay
+finishing over it. For a Mode-B task, also note if the recorded `flows`
+only reference one product — dual-product QA is the requirement, not a
+single-product pass.
+
 ### Step 2: Detect Environment
 
 **Determine workspace state before presenting options:**

@@ -23,6 +23,7 @@ If there is even a 1% chance a skill applies, invoke it before responding. One s
 | BUILD | `subagent-driven-dev` + `test-driven-development` | per-task review loop |
 | DEBUG | `systematic-debugging` | root-cause before fix |
 | REVIEW | `requesting-code-review` | resolve findings |
+| QA | `browser-qa` (user-facing work; mandatory dual-product pass for Mode B) | confirm flows pass live |
 | FINISH | `finishing-a-branch` | pick merge/PR/keep/discard |
 
 Do NOT use any `brainstorming` skill — `framing` owns alignment in Spine.
