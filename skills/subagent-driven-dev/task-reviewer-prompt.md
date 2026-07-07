@@ -52,6 +52,21 @@ Subagent (spine-task-reviewer):
     Your review is read-only on this checkout. Do not mutate the working
     tree, the index, HEAD, or branch state in any way.
 
+    ## Read the tests first
+
+    Within the diff, read the test files before the implementation files —
+    even though both are in front of you in the same diff, choose that
+    reading order deliberately. Tests reveal intent: what the implementer
+    believed they were building and what they thought "done" meant, before
+    you've anchored on their implementation. A test that verifies the wrong
+    thing, or a conspicuous absence of a test for stated behavior, is often
+    visible in the tests alone — and is exactly the kind of spec-correct/
+    code-wrong (or spec-wrong/code-matches-the-wrong-spec) bug a
+    code-first read misses because the implementation already looks
+    internally consistent. This changes your reading order, not your output
+    structure — Part 1 and Part 2 below still cover spec compliance and
+    code quality as usual.
+
     ## Do Not Trust the Report
 
     Treat the implementer's report as unverified claims about the code. It

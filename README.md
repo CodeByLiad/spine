@@ -8,7 +8,9 @@ It is built by merging upstream source from five frameworks into one coherent bu
 
 ## Status
 
-**v0.4.0 — Phase 1 + Phase 2 closed (live-confirmed, 6 rounds). Phase 3 complete (3 of 3 parts).**
+**v0.4.1 — Phase 1 + Phase 2 closed (live-confirmed, 6 rounds). Phase 3 complete (3 of 3 parts) + 3 graft gaps closed.**
+
+An audit against the stage-by-stage base/graft table (the design doc's own summary of what each stage should carry) found 3 real gaps that had been missed while building the hook-backed mechanisms: `writing-plans` never actually used mattpocock's seam/deep-module vocabulary (the word "seam" appeared, but not the practice); both reviewer prompts checked tests but never read them *first* (agent-skills' specific graft); `finishing-a-branch` never mentioned shipping discipline (feature flags, incremental rollout, reversible-by-default). All three closed in v0.4.1 — prose/skill changes, not hook-testable; correctness means "does a real review/plan/finish actually follow this," which needs a live session to confirm, same as the other prose-only grafts.
 
 **Phase 1** (the walking skeleton): FRAME → plan → worktree → build loop → whole-branch review → finish, with a per-repo `.spine/` config, a boot assertion, and a hash-bound config-assertion gate (Gate C).
 

@@ -22,16 +22,18 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during the frame stage. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
-## File Structure
+## File Structure — design with the seam vocabulary
 
-Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
+Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in — and where you commit to each module's **seam**.
 
+- **Deep module / seam (Ousterhout/Feathers vocabulary — use it exactly, not a paraphrase).** A deep module hides a large implementation behind a small, stable interface; the seam is that interface boundary. The seam is the test surface and the unit of review — a small seam bounds how much a reviewer has to hold in their head, no matter how large the codebase grows. Name the seam for every module in this plan's file structure, not just the files.
+- **Humans own the interface; the AI fills the implementation.** For each module, write down the interface first — the function signatures, the types, the contract a caller depends on — as something you (the human) are approving, not something the implementer subagent is free to redesign mid-task. The implementation behind that seam is where the subagent has latitude.
 - Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
 - You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
 - Files that change together should live together. Split by responsibility, not by technical layer.
 - In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
 
-This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
+This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently, and each task's "Interfaces: Produces" block (see Task Structure below) IS that task's seam — the exact names and types the plan is committing to, not an implementation detail the task is free to change without updating the plan.
 
 ## Task Right-Sizing
 

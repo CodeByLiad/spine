@@ -93,6 +93,28 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
+### Shipping discipline (agent-skills graft)
+
+Before presenting options, weigh how this change should land, not just which
+git operation performs it:
+
+- **Ship small and often** beats one large branch landing at once. If this
+  branch bundles multiple independently-shippable slices, say so — that's
+  feedback for next time, not a reason to hold this one back.
+- **Prefer reversible by default.** A change that's easy to roll back (an
+  additive schema change, a new code path gated off) is safer to land than
+  one that isn't (a destructive migration, a removed field), even if both
+  pass review. Note in your options if this change is hard to reverse and
+  why.
+- **Feature-flag or incrementally roll out anything risky or large**, rather
+  than exposing it to every user the moment it merges. If the codebase has
+  a flag mechanism, recommend using it for user-facing or high-blast-radius
+  changes; if it doesn't, say that gating this behind one would reduce risk,
+  as a recommendation, not a blocker.
+- This informs your recommendation when presenting options below — e.g.
+  "Option 2 (PR), and consider landing it behind a flag" — it does not add a
+  5th option or change the menu shape.
+
 ### Step 4: Present Options
 
 **Normal repo and named-branch worktree — present exactly these 4 options:**
