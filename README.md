@@ -8,7 +8,9 @@ It is built by merging upstream source from five frameworks into one coherent bu
 
 ## Status
 
-**v0.4.2 — Phase 1 + Phase 2 closed (live-confirmed, 6 rounds). Phase 3 complete (3 of 3 parts) + 5 graft gaps closed.**
+**v0.4.3 — Phase 1 + Phase 2 closed (live-confirmed, 7 rounds). Phase 3 complete (3 of 3 parts) + 5 graft gaps closed + 1 merge-gate bypass fixed.**
+
+Live round 8 (v0.4.2) confirmed both new graft-gap closures live and found one real bug beyond the checklist: `merge-gate`'s per-segment tokenizer word-splits on raw whitespace with no quote awareness, so `git -C "<path with spaces>" merge <ref>` split the quoted path into several tokens, mis-identified a path fragment as the git subcommand, and let the merge run un-gated (the `-C` redirect-deny path never triggered). Only a problem for repos whose path contains spaces (common on Windows, e.g. anything under `Program Files`-style trees) — fixed in v0.4.3 by collapsing spaces inside quoted spans to a placeholder byte before tokenizing (pure text scan, no `eval`, no code execution), so a quoted argument counts as one token regardless of embedded spaces. Verified against the exact reported case plus the full 10-case regression suite (spaceless `-C`, plain deny/allow/stale, chained-non-first-subcommand, text-mention-only, command-substitution, unrelated-chained, env-prefixed) — all still correct.
 
 An audit against the stage-by-stage base/graft table (the design doc's own summary of what each stage should carry) found 3 real gaps that had been missed while building the hook-backed mechanisms: `writing-plans` never actually used mattpocock's seam/deep-module vocabulary (the word "seam" appeared, but not the practice); both reviewer prompts checked tests but never read them *first* (agent-skills' specific graft); `finishing-a-branch` never mentioned shipping discipline (feature flags, incremental rollout, reversible-by-default). All three closed in v0.4.1 — prose/skill changes, not hook-testable; correctness means "does a real review/plan/finish actually follow this," which needs a live session to confirm, same as the other prose-only grafts.
 

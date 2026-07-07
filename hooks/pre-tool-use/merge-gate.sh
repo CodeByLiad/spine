@@ -104,8 +104,30 @@ IFS=$old_ifs
 chained=0
 [ "$seg_count" -gt 1 ] && chained=1
 
+# Collapse spaces INSIDE quoted spans to a placeholder byte before naive
+# whitespace tokenizing, so `-C "path with spaces"` counts as one token
+# instead of splitting into several — a live test found the un-fixed
+# version treats a mid-path fragment as the git subcommand, fails the
+# merge/push check, and lets the real merge run un-gated. No eval, no
+# code execution — pure text scan via looping sed substitution.
+collapse_quotes() {
+  ph=$(printf '\001')
+  s="$1"
+  while :; do
+    new=$(printf '%s' "$s" | sed "s/\(\"[^\"]*\) \([^\"]*\"\)/\1${ph}\2/")
+    [ "$new" = "$s" ] && break
+    s="$new"
+  done
+  while :; do
+    new=$(printf '%s' "$s" | sed "s/\('[^']*\) \([^']*'\)/\1${ph}\2/")
+    [ "$new" = "$s" ] && break
+    s="$new"
+  done
+  printf '%s' "$s"
+}
+
 evaluate_segment() {  # evaluate_segment <segment-text> — returns via exit()/deny() or plain return
-  seg="$1"
+  seg=$(collapse_quotes "$1")
   # IFS is narrowed to newline-only by the caller's segment loop; restore
   # normal word-splitting (space/tab/newline) just for this tokenize step,
   # or a whole segment like "git branch x" becomes ONE token (no spaces to
