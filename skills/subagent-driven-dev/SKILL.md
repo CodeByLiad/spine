@@ -270,6 +270,14 @@ Everything you paste into a dispatch prompt — and everything a subagent
 prints back — stays resident in your context for the rest of the session
 and is re-read on every later turn. Hand artifacts over as files:
 
+Both scripts below live under this skill's own `scripts/` directory, at
+`$CLAUDE_PLUGIN_ROOT/skills/subagent-driven-dev/scripts/<name>`. If
+`$CLAUDE_PLUGIN_ROOT` is empty in your shell (common — do not assume the
+controller has it just because it's the main session), resolve the path with
+`using-spine`'s bounded fallback rather than guessing a hardcoded location —
+that fallback covers `skills/<skill>/scripts/<script>` paths, not just
+`hooks/`.
+
 - **Task brief:** before dispatching an implementer, run this skill's
   `scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
   uniquely named file and prints the path. Compose the dispatch so the

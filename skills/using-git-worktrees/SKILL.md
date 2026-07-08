@@ -99,6 +99,29 @@ cd "$path"
 
 **Sandbox fallback:** If `git worktree add` fails with a permission error (sandbox denial), tell the user the sandbox blocked worktree creation and you're working in the current directory instead. Then run setup and baseline tests in place.
 
+**Carrying FRAME approval into the new branch/worktree.** `.spine/frame-approved` is
+per-branch (`frame-gate`'s Gate A denies until it matches the current branch name). Creating
+this branch/worktree right after FRAME approved the design is the SAME approval continuing,
+not a new one — but the marker won't reflect that automatically, and this is NOT safe to
+auto-heal in the hook the way the unborn-`HEAD`-sentinel case is (the hook can't distinguish
+"branch just created to isolate the just-approved design" from "someone switched to an
+unrelated branch to smuggle in unapproved work" — that distinction needs the session context
+only you have). Handle both cases explicitly, right after creating the branch/worktree:
+
+- **Same directory, branch switched in place** (`git checkout -b`, no new worktree path):
+  `.spine/` is unchanged, just re-stamp the marker to the new branch name:
+  `git rev-parse --abbrev-ref HEAD > .spine/frame-approved`
+- **New worktree directory** (`git worktree add`): `.spine/` doesn't exist there at all yet —
+  it's a fresh working directory. Copy the state forward rather than re-deriving it (the
+  config-hash check is content-based, not path-based, so a byte-identical copy stays valid):
+  ```
+  mkdir -p "$path/.spine"
+  cp .spine/config.md .spine/config-asserted "$path/.spine/" 2>/dev/null
+  git -C "$path" rev-parse --abbrev-ref HEAD > "$path/.spine/frame-approved"
+  ```
+  Do this before any code write in the new worktree, or Gate A/B/C will all deny as if
+  nothing had ever been approved.
+
 ## Step 2: Project Setup
 
 Auto-detect and run appropriate setup:

@@ -1,6 +1,6 @@
 ---
 name: using-spine
-description: Use at the start of any coding task — establishes the Spine governing rules, the skill index, the auto-trigger discipline, and the bounded fallback for locating hook scripts when $CLAUDE_PLUGIN_ROOT is unset.
+description: Use at the start of any coding task — establishes the Spine governing rules, the skill index, the auto-trigger discipline, the named gates (Frame/Config/Assert/Review/Boundary), and the bounded fallback for locating hook/skill-script paths when $CLAUDE_PLUGIN_ROOT is unset.
 ---
 
 # Using Spine
@@ -31,23 +31,47 @@ Do NOT use any `brainstorming` skill — `framing` owns alignment in Spine.
 ## Two human gates, ask the user
 Run autonomously between gates. Stop and ask the user at: design approval, finish path, sensitive ops (auth, payments, schema, data migration — never autonomous), `BLOCKED`, genuine ambiguity.
 
-## Resolving hook scripts when `$CLAUDE_PLUGIN_ROOT` is unset
+## Named gates
+Every enforced gate has a name — use it instead of a bare letter when talking to the user
+or writing docs. Each name is the exact word in that hook's own deny message, so a denied
+user can search this table directly from what they saw on screen:
+
+| Name | Hook | Deny message starts with | Blocks |
+|---|---|---|---|
+| **Frame Gate** | `frame-gate` | `SPINE FRAME GATE BLOCKED` | code writes until FRAME is approved for this branch |
+| **Config Gate** | `frame-gate` | `SPINE CONFIG GATE BLOCKED` | code writes until `.spine/config.md` exists |
+| **Assert Gate** | `frame-gate` | `SPINE ASSERT GATE BLOCKED` | code writes until the config contract is asserted (hash recorded) |
+| **Review Gate** | `merge-gate` | `SPINE REVIEW GATE BLOCKED` | `git merge`/`git push` until a passing whole-branch review receipt matches the current tip |
+| **Boundary Gate** | `boundary-gate` | `SPINE BOUNDARY GATE BLOCKED` | writes crossing a configured import-boundary rule |
+
+The historical "Gate A/B/C/D" letters (Frame=A, Config=B, Assert=C, Review=D) still appear
+in older docs and the acceptance records — they're the same four gates, just referenced by
+position instead of name. Boundary Gate was never lettered; it's Phase 2's golden-rule guard.
+
+## Resolving hook/script paths when `$CLAUDE_PLUGIN_ROOT` is unset
 Any skill that shells out to a hook (`config-hash.sh`, `review-receipt.sh`, `qa-receipt.sh`,
-`classify-task.sh`) normally does so via `$CLAUDE_PLUGIN_ROOT/hooks/<script>`. That variable
-is reliably set inside the plugin's own PreToolUse/SessionStart hook invocations, but is
-**not** reliably inherited by an ordinary Bash tool call — this is true for subagents AND for
-the controller's own shell; do not assume the controller has it just because it's the main
-session. If it's empty, resolve it with exactly this bounded check, never anything wider:
+`classify-task.sh`, under `hooks/`) or a skill script (`task-brief`, `review-package`, under
+`skills/<skill>/scripts/`) normally does so via `$CLAUDE_PLUGIN_ROOT/<relative-path>`. That
+variable is reliably set inside the plugin's own PreToolUse/SessionStart hook invocations,
+but is **not** reliably inherited by an ordinary Bash tool call — this is true for subagents
+AND for the controller's own shell; do not assume the controller has it just because it's
+the main session. If it's empty, resolve it with exactly this bounded check, never anything
+wider — substitute the actual relative path you need after `hooks/<script>` or
+`skills/<skill>/scripts/<script>`:
 
 ```
 match=""; count=0
 for d in ~/.claude/plugins/cache/*/spine/*/; do
   [ -f "${d}.orphaned_at" ] && continue
-  [ -f "${d}hooks/<script>" ] || continue
-  match="${d}hooks/<script>"; count=$((count + 1))
+  [ -f "${d}<relative-path>" ] || continue
+  match="${d}<relative-path>"; count=$((count + 1))
 done
 [ "$count" -eq 1 ] && printf '%s' "$match"
 ```
+
+(e.g. `<relative-path>` = `hooks/config-hash.sh`, or
+`skills/subagent-driven-dev/scripts/task-brief` — the loop and ambiguity rules below are
+identical either way, only the path being checked changes.)
 
 Do NOT shorten this to `ls .../hooks/<script> | head -1` — a machine with more than one
 Spine version cached (the normal case after any update) has multiple matches, `ls` sorts

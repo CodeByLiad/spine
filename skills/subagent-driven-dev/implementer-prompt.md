@@ -47,6 +47,23 @@ Subagent (spine-implementer):
     While iterating, run the focused test for what you're changing; run the
     full suite once before committing, not after every edit.
 
+    ## Shell Discipline (Windows)
+
+    If you're on Windows, your Bash tool calls run through git-bash (POSIX `sh`) —
+    use POSIX syntax (`&&`, `cd path`, single/double-quoted strings) consistently.
+    Do not mix in:
+    - **cmd.exe syntax** — `cd /d`, `%VAR%`, `dir` — these are not valid in git-bash
+      and will fail to parse or behave differently than intended.
+    - **PowerShell syntax** in a Bash call — `Set-Location`, PowerShell `;` chaining,
+      `@"..."@` here-strings — these belong to a *different* tool call (PowerShell),
+      not Bash.
+    If a command genuinely needs to run via PowerShell instead of Bash, use
+    PowerShell-correct syntax for it: `;` to chain (not `&&`, invalid pre-PS7),
+    `Set-Location` (not `cd /d`), and if using a here-string (`@"..."@`), the closing
+    `"@` MUST be at column 0 with zero leading whitespace — an indented closer is a
+    parse error, unlike a Bash heredoc which tolerates it. Pick one shell per command
+    and use that shell's real syntax throughout it — don't guess and mix dialects.
+
     ## Code Organization
 
     You reason best about code you can hold in context at once, and your edits are more
