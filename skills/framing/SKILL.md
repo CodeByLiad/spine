@@ -28,9 +28,9 @@ You MUST create a task (todo) for each item below and complete them in order. Do
    ```
    The rest of the `.spine/` skeleton (`context.md`, `danger-paths`, `progress.md`) is auto-scaffolded silently by the `pre-tool-use/frame-gate` hook — do NOT create those yourself. Enforced in tooling: the hook DENIES every code write until `.spine/config.md` exists. Create it now; do not wait for the deny.
 
-   **Immediately after writing config.md, close Gate C too — don't leave this for build time.** Run the `config-contract` skill's own assertion + hash-recording step now:
+   **Immediately after writing config.md, close Gate C too — don't leave this for build time.** First perform the actual assertion `config-contract` describes: either the boot-assertion check named in config.md's own "Boot assertion" field (run it, confirm it fails loudly on the wrong target), or — where nothing mechanical is possible — get the named human to explicitly confirm the seam. Only once that real check has happened, record it:
    `sh "$CLAUDE_PLUGIN_ROOT/hooks/config-hash.sh" .spine/config.md > .spine/config-asserted`
-   If you skip this here, the first implementer subagent dispatched in BUILD hits Gate C's deny instead of you — and a subagent has no reliable way to locate `$CLAUDE_PLUGIN_ROOT` on its own (it is not inherited from the controller's session), so it either stalls or, worse, tries an expensive/dangerous whole-filesystem search to find the hook script itself. Closing Gate C here, while you still have the correct plugin root, prevents that entirely.
+   Running only the hash command without the assertion behind it just makes Gate C's check pass on paper — the contract was never actually verified, which is the exact failure config-contract exists to catch. If you skip this here, the first implementer subagent dispatched in BUILD hits Gate C's deny instead of you — and a subagent has no reliable way to locate `$CLAUDE_PLUGIN_ROOT` on its own (it is not inherited from the controller's session), so it either stalls or, worse, tries an expensive/dangerous whole-filesystem search to find the hook script itself. Closing Gate C here, while you still have the correct plugin root, prevents that entirely. If config.md changes later (grilling in step 3 surfaces a correction), re-run the assertion and re-record before BUILD starts — a changed contract with a stale hash is exactly what Gate C is designed to catch.
 3. **Grill — one question per message, confidence-tagged (Phase 3).** Ask exactly ONE question, then STOP and wait for the answer before the next. For each question give: your own recommended answer + reasoning, and a **confidence number (0–100%)** — how sure you are that recommendation is right without the user's input. Prefer multiple-choice. Self-answer from the codebase rather than asking whenever you can.
    - **Order by confidence, lowest first.** The lowest-confidence open decision is where a question earns the most — ask it before higher-confidence ones.
    - **Run until overall design confidence reaches ~95%**, not a fixed question count. If every remaining open decision is already ≥90% confident, stop grilling and state those as assumptions in the design (step 7) instead of spending a question on them — the number is what tells you (and the user) where NOT to spend a question.
@@ -41,15 +41,15 @@ You MUST create a task (todo) for each item below and complete them in order. Do
 7. **Present the design** in sections scaled to complexity; get approval per section.
 8. **Write the design doc** to `docs/spine/specs/YYYY-MM-DD-<topic>-design.md`.
 9. **Self-review the spec** (placeholders, contradictions, scope, ambiguity); fix inline.
-10. **Ask the user to review the written spec. On approval, record it, then invoke `writing-plans`.**
-   Approval is not real until it's on disk — Gate A reads the marker file, not your memory
-   of the conversation. Record it in the SAME turn as the approval:
-   `echo "$(git rev-parse --abbrev-ref HEAD)" > .spine/frame-approved`
-   If there are no commits yet, `git rev-parse --abbrev-ref HEAD` resolves to the literal
-   string `HEAD` — that's fine, Gate A compares against whatever the branch name resolves
-   to at write time and at check time. If a commit lands later and the branch gets a real
-   name, `frame-approved` must be re-recorded against the new name or Gate A will re-deny
-   with a stale marker (same idea as Gate C's stale-hash re-deny — do not treat this as a
-   bug if it happens, re-record and move on).
+10. **Ask the user to review the written spec. On approval, record the approval, then invoke `writing-plans`.**
+    Approval is not real until it's on disk — Gate A reads the marker file, not your memory
+    of the conversation. Record it in the SAME turn as the approval:
+    `echo "$(git rev-parse --abbrev-ref HEAD)" > .spine/frame-approved`
+    If there are no commits yet, this resolves to the literal string `HEAD` — that's expected
+    and fine; the hook itself re-stamps the marker automatically the moment a real branch name
+    exists (a first commit landing is not a re-approval event, so this needs no action from
+    you). What DOES need a fresh approval: switching to a genuinely different branch after the
+    fact, or restarting FRAME with a changed design — those are real re-approval events, not
+    the same automatic case.
 
 Steps 1–2 run autonomously (no questions to the user). The first time you stop for the user is step 3's grill. That is the intended hand-off point.

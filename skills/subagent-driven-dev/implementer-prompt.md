@@ -71,13 +71,16 @@ Subagent (spine-implementer):
     - You feel uncertain about whether your approach is correct
     - The task involves restructuring existing code in ways the plan didn't anticipate
     - You've been reading file after file trying to understand the system without progress
-    - A Write/Edit/Bash call is blocked by a "SPINE ... GATE BLOCKED" message that names a
-      hook script (e.g. `config-hash.sh`) and you don't have `$CLAUDE_PLUGIN_ROOT` set:
-      **do not search the filesystem for it** (a `find /` or equivalent whole-disk scan is
-      slow, requires a permission prompt, and repeats on every fresh dispatch since you
-      have no memory of the last search). Report BLOCKED with the exact deny message
-      instead — the controller has the correct plugin root and can either resolve the gate
-      itself or hand you the path directly.
+    - Any Write/Edit/Bash call is blocked by a "SPINE ... GATE BLOCKED" message, for ANY
+      reason, and you don't already have `$CLAUDE_PLUGIN_ROOT` set in your own shell:
+      **do not search the filesystem for a hook script or plugin path to resolve it
+      yourself** (a `find /` or equivalent whole-disk scan is slow, requires a permission
+      prompt, and repeats on every fresh dispatch since you have no memory of the last
+      search). This applies even if the deny message doesn't literally name a script —
+      Gate A's stale-marker deny and Gate C's assertion deny are just as much yours to
+      escalate as one that does. Report BLOCKED with the exact deny message instead — the
+      controller has the correct plugin root and can either resolve the gate directly or
+      hand you the resolved path.
 
     **How to escalate:** Report back with status BLOCKED or NEEDS_CONTEXT. Describe
     specifically what you're stuck on, what you've tried, and what kind of help you need.

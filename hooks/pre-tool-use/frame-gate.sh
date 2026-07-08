@@ -59,6 +59,18 @@ if [ -f "$marker" ]; then
   # approved for this branch, or branch undetectable (non-git) -> frame satisfied
   if [ "$approved" = "$branch" ] || [ -z "$branch" ]; then
     frame_ok=1
+  elif [ "$approved" = "HEAD" ] && [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+    # FRAME can be approved before the first commit exists, when
+    # `git rev-parse --abbrev-ref HEAD` has no branch to report and returns
+    # the literal string "HEAD" - git's own sentinel for "unborn branch",
+    # never a name a human could have smuggled unapproved work in on. Once
+    # the first commit lands, the branch resolves to its real name and the
+    # stored marker goes stale through no action of anyone's - re-stamping
+    # it here is closing an approval that already happened, not granting a
+    # new one. This must live in the hook, not a skill instruction: rule #3
+    # says a gate depending on someone remembering to re-record isn't a gate.
+    printf '%s' "$branch" > "$marker" 2>/dev/null
+    frame_ok=1
   fi
 fi
 
