@@ -45,7 +45,9 @@ than silently skipping QA — a real gap you name is better than a silent one.
    the ordinary test suite covers next time.
 6. **Record the pass:**
    `sh "$CLAUDE_PLUGIN_ROOT/hooks/qa-receipt.sh" pass "<one-line flow description>"`
-   — writes `.spine/qa-receipt` (branch tip + verdict + flows verified).
+   — writes `.spine/qa-receipt` (branch tip + verdict + flows verified). If
+   `$CLAUDE_PLUGIN_ROOT` is empty in your shell, use `using-spine`'s bounded hook-path
+   fallback rather than guessing.
 
 ## Dual-product QA (Mode B, mandatory)
 

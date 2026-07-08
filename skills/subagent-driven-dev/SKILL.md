@@ -105,7 +105,8 @@ gets wide context and no fast-path). Score three signals and take the
 
 1. **Files touched** — mechanical. Run:
    `sh "$CLAUDE_PLUGIN_ROOT/hooks/classify-task.sh" file1 file2 ...` (or pipe
-   one path per line). It checks each path against `.spine/danger-paths`
+   one path per line; if `$CLAUDE_PLUGIN_ROOT` is empty, use `using-spine`'s
+   bounded hook-path fallback). It checks each path against `.spine/danger-paths`
    globs and prints `A` or `B` (with the matched pattern on stderr). This is
    advisory only — it never blocks a write; Gate D still requires a passing
    review before merge regardless of mode.
@@ -319,7 +320,8 @@ review receipt so merge/push unlocks:
 
 `sh "$CLAUDE_PLUGIN_ROOT/hooks/review-receipt.sh" pass`
 
-This writes `.spine/review-receipt` (the branch tip SHA + verdict). The `merge-gate`
+(If `$CLAUDE_PLUGIN_ROOT` is empty, use `using-spine`'s bounded hook-path fallback rather
+than guessing.) This writes `.spine/review-receipt` (the branch tip SHA + verdict). The `merge-gate`
 hook (Gate D) blocks `git merge` / `git push` until this receipt matches the
 integrated branch's current tip. Rules:
 

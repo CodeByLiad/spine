@@ -1,6 +1,6 @@
 ---
 name: using-spine
-description: Use at the start of any coding task — establishes the Spine governing rules, the skill index, and the auto-trigger discipline.
+description: Use at the start of any coding task — establishes the Spine governing rules, the skill index, the auto-trigger discipline, and the bounded fallback for locating hook scripts when $CLAUDE_PLUGIN_ROOT is unset.
 ---
 
 # Using Spine
@@ -40,12 +40,23 @@ the controller's own shell; do not assume the controller has it just because it'
 session. If it's empty, resolve it with exactly this bounded check, never anything wider:
 
 ```
-ls ~/.claude/plugins/cache/*/spine/*/hooks/<script> 2>/dev/null | head -1
+for d in ~/.claude/plugins/cache/*/spine/*/; do
+  [ -f "${d}.orphaned_at" ] && continue
+  [ -f "${d}hooks/<script>" ] && { printf '%s' "${d}hooks/<script>"; break; }
+done
 ```
 
-(On Windows Git Bash, `~` resolves the same way.) This is bounded to the one directory any
-Spine install actually lives in — it is not a fallback license to widen the search if it
-comes up empty; if it does, report BLOCKED with what was tried rather than escalating to a
-broader filesystem scan (`find /`, `dir C:\ /s`, or similar). A whole-disk search is slow,
-forces a permission prompt, and — from a subagent — repeats on every fresh dispatch since
-nothing carries the result forward.
+Do NOT shorten this to `ls .../hooks/<script> | head -1` — a machine with more than one
+Spine version cached (the normal case after any update) has multiple matches, `ls` sorts
+them alphabetically, and `head -1` silently picks the *oldest* one, which the harness may
+already have marked orphaned (`.orphaned_at` present in that version's cache directory) —
+running a superseded hook script against the current `.spine/config.md` is exactly the
+kind of unverified-contract failure Gate C exists to catch, just relocated one level down.
+The loop above skips orphaned versions explicitly instead of guessing from sort order.
+
+This is bounded to the one directory any Spine install actually lives in — it is not a
+fallback license to widen the search if it comes up empty; if it does, report BLOCKED with
+what was tried rather than escalating to a broader filesystem scan (`find /`, `dir C:\ /s`,
+or similar). A whole-disk search is slow, forces a permission prompt, and — from a
+subagent — repeats on every fresh dispatch since nothing carries the result forward. (On
+Windows Git Bash, `~` resolves the same way as Unix/macOS.)
