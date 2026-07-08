@@ -49,20 +49,23 @@ Subagent (spine-implementer):
 
     ## Shell Discipline (Windows)
 
-    If you're on Windows, your Bash tool calls run through git-bash (POSIX `sh`) —
-    use POSIX syntax (`&&`, `cd path`, single/double-quoted strings) consistently.
-    Do not mix in:
-    - **cmd.exe syntax** — `cd /d`, `%VAR%`, `dir` — these are not valid in git-bash
-      and will fail to parse or behave differently than intended.
-    - **PowerShell syntax** in a Bash call — `Set-Location`, PowerShell `;` chaining,
-      `@"..."@` here-strings — these belong to a *different* tool call (PowerShell),
-      not Bash.
-    If a command genuinely needs to run via PowerShell instead of Bash, use
-    PowerShell-correct syntax for it: `;` to chain (not `&&`, invalid pre-PS7),
-    `Set-Location` (not `cd /d`), and if using a here-string (`@"..."@`), the closing
-    `"@` MUST be at column 0 with zero leading whitespace — an indented closer is a
-    parse error, unlike a Bash heredoc which tolerates it. Pick one shell per command
-    and use that shell's real syntax throughout it — don't guess and mix dialects.
+    On Windows, a shell command you issue may execute via git-bash (POSIX `sh`) or via
+    PowerShell depending on the harness — the command's own displayed label tells you
+    which one actually ran it ("Bash command" vs "PowerShell command"). Whichever one
+    it is, use THAT shell's real syntax consistently for the whole command — never mix:
+    - **cmd.exe syntax** (`cd /d`, `%VAR%`, `dir`) — not valid in either git-bash or
+      PowerShell; this is a third, different dialect and never correct here.
+    - **POSIX syntax in a command that ran as PowerShell**, or vice versa — `&&`
+      chaining is POSIX/PS7+ only (invalid in Windows PowerShell 5.1, which needs `;`
+      or `if ($?) { ... }`); `Set-Location`/`@"..."@` here-strings are PowerShell-only
+      and invalid in git-bash.
+    If using a PowerShell here-string (`@"..."@`), the closing `"@` MUST be at column 0
+    with zero leading whitespace — an indented closer is a parse error there, unlike a
+    Bash heredoc (`<<EOF`), which tolerates leading whitespace in the body (though the
+    closing `EOF` itself must still be unindented unless you used `<<-EOF`, which then
+    only strips leading tabs, not spaces). If a retry shows the label changed between
+    attempts, that's the harness switching shells, not you choosing — adapt your syntax
+    to match rather than repeating the same syntax that just failed to parse.
 
     ## Code Organization
 

@@ -94,33 +94,48 @@ git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/d
 path="$LOCATION/$BRANCH_NAME"
 
 git worktree add "$path" -b "$BRANCH_NAME"
+
+# Carry FRAME's approval and pinned context forward BEFORE cd — see the note
+# below for why, and why each of these specific files.
+mkdir -p "$path/.spine"
+for f in config.md config-asserted danger-paths import-boundaries context.md; do
+  [ -f ".spine/$f" ] && cp ".spine/$f" "$path/.spine/$f"
+done
+git -C "$path" rev-parse --abbrev-ref HEAD > "$path/.spine/frame-approved"
+
 cd "$path"
 ```
 
 **Sandbox fallback:** If `git worktree add` fails with a permission error (sandbox denial), tell the user the sandbox blocked worktree creation and you're working in the current directory instead. Then run setup and baseline tests in place.
 
-**Carrying FRAME approval into the new branch/worktree.** `.spine/frame-approved` is
-per-branch (`frame-gate`'s Gate A denies until it matches the current branch name). Creating
-this branch/worktree right after FRAME approved the design is the SAME approval continuing,
-not a new one — but the marker won't reflect that automatically, and this is NOT safe to
-auto-heal in the hook the way the unborn-`HEAD`-sentinel case is (the hook can't distinguish
-"branch just created to isolate the just-approved design" from "someone switched to an
-unrelated branch to smuggle in unapproved work" — that distinction needs the session context
-only you have). Handle both cases explicitly, right after creating the branch/worktree:
+**Why the copy happens BEFORE `cd "$path"`, and why these five files specifically.**
+`.spine/frame-approved` is per-branch (`frame-gate`'s Frame Gate denies until it matches the
+current branch name). Creating this branch/worktree right after FRAME approved the design is
+the SAME approval continuing, not a new one — but nothing carries that forward automatically,
+and this is NOT safe to auto-heal in the hook the way the unborn-`HEAD`-sentinel case is (the
+hook can't distinguish "branch just created to isolate the just-approved design" from
+"someone switched to an unrelated branch to smuggle in unapproved work" — that distinction
+needs session context only you have).
 
-- **Same directory, branch switched in place** (`git checkout -b`, no new worktree path):
-  `.spine/` is unchanged, just re-stamp the marker to the new branch name:
-  `git rev-parse --abbrev-ref HEAD > .spine/frame-approved`
-- **New worktree directory** (`git worktree add`): `.spine/` doesn't exist there at all yet —
-  it's a fresh working directory. Copy the state forward rather than re-deriving it (the
-  config-hash check is content-based, not path-based, so a byte-identical copy stays valid):
-  ```
-  mkdir -p "$path/.spine"
-  cp .spine/config.md .spine/config-asserted "$path/.spine/" 2>/dev/null
-  git -C "$path" rev-parse --abbrev-ref HEAD > "$path/.spine/frame-approved"
-  ```
-  Do this before any code write in the new worktree, or Gate A/B/C will all deny as if
-  nothing had ever been approved.
+A `git worktree add` target starts as a bare directory with no `.spine/` at all — copy the
+state forward rather than re-deriving it. The copy must happen while the source paths
+(`.spine/config.md`, etc.) still resolve relative to the *original* directory — do it before
+`cd "$path"` changes that, not after, or the bare relative source paths silently resolve
+into the new (still-empty) worktree instead and the copy does nothing.
+
+All five files matter, not just config: `config.md`/`config-asserted` close the Config/Assert
+Gates (content-hash-based, not path-based, so a byte-identical copy stays valid).
+`danger-paths` and `import-boundaries` are pinned during the same FRAME/config-contract
+stage under rule #5 — silently reverting them to blank templates isn't just a lesser version
+of the same problem, it's worse for `import-boundaries` specifically: `boundary-gate` has no
+scaffold logic of its own and fails open on a missing file, so a fresh worktree with no
+`import-boundaries` silently disables the Boundary Gate entirely, with no deny, no warning.
+`context.md` carries FRAME's glossary; losing it doesn't reopen a gate but does lose the
+term-sharpening work grilling produced.
+
+**Same directory, branch switched in place** (`git checkout -b`, no new worktree path) is
+simpler — `.spine/` is unchanged, just re-stamp the marker to the new branch name:
+`git rev-parse --abbrev-ref HEAD > .spine/frame-approved`
 
 ## Step 2: Project Setup
 
