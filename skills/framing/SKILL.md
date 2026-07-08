@@ -27,6 +27,10 @@ You MUST create a task (todo) for each item below and complete them in order. Do
    - Boot assertion:   <!-- startup check that fails loudly on wrong DB/env -->
    ```
    The rest of the `.spine/` skeleton (`context.md`, `danger-paths`, `progress.md`) is auto-scaffolded silently by the `pre-tool-use/frame-gate` hook — do NOT create those yourself. Enforced in tooling: the hook DENIES every code write until `.spine/config.md` exists. Create it now; do not wait for the deny.
+
+   **Immediately after writing config.md, close Gate C too — don't leave this for build time.** Run the `config-contract` skill's own assertion + hash-recording step now:
+   `sh "$CLAUDE_PLUGIN_ROOT/hooks/config-hash.sh" .spine/config.md > .spine/config-asserted`
+   If you skip this here, the first implementer subagent dispatched in BUILD hits Gate C's deny instead of you — and a subagent has no reliable way to locate `$CLAUDE_PLUGIN_ROOT` on its own (it is not inherited from the controller's session), so it either stalls or, worse, tries an expensive/dangerous whole-filesystem search to find the hook script itself. Closing Gate C here, while you still have the correct plugin root, prevents that entirely.
 3. **Grill — one question per message, confidence-tagged (Phase 3).** Ask exactly ONE question, then STOP and wait for the answer before the next. For each question give: your own recommended answer + reasoning, and a **confidence number (0–100%)** — how sure you are that recommendation is right without the user's input. Prefer multiple-choice. Self-answer from the codebase rather than asking whenever you can.
    - **Order by confidence, lowest first.** The lowest-confidence open decision is where a question earns the most — ask it before higher-confidence ones.
    - **Run until overall design confidence reaches ~95%**, not a fixed question count. If every remaining open decision is already ≥90% confident, stop grilling and state those as assumptions in the design (step 7) instead of spending a question on them — the number is what tells you (and the user) where NOT to spend a question.
@@ -37,6 +41,15 @@ You MUST create a task (todo) for each item below and complete them in order. Do
 7. **Present the design** in sections scaled to complexity; get approval per section.
 8. **Write the design doc** to `docs/spine/specs/YYYY-MM-DD-<topic>-design.md`.
 9. **Self-review the spec** (placeholders, contradictions, scope, ambiguity); fix inline.
-10. **Ask the user to review the written spec.** On approval, invoke `writing-plans`.
+10. **Ask the user to review the written spec. On approval, record it, then invoke `writing-plans`.**
+   Approval is not real until it's on disk — Gate A reads the marker file, not your memory
+   of the conversation. Record it in the SAME turn as the approval:
+   `echo "$(git rev-parse --abbrev-ref HEAD)" > .spine/frame-approved`
+   If there are no commits yet, `git rev-parse --abbrev-ref HEAD` resolves to the literal
+   string `HEAD` — that's fine, Gate A compares against whatever the branch name resolves
+   to at write time and at check time. If a commit lands later and the branch gets a real
+   name, `frame-approved` must be re-recorded against the new name or Gate A will re-deny
+   with a stale marker (same idea as Gate C's stale-hash re-deny — do not treat this as a
+   bug if it happens, re-record and move on).
 
 Steps 1–2 run autonomously (no questions to the user). The first time you stop for the user is step 3's grill. That is the intended hand-off point.
