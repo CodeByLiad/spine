@@ -30,7 +30,17 @@ You MUST create a task (todo) for each item below and complete them in order. Do
 
    **Immediately after writing config.md, close Gate C too — don't leave this for build time.** First perform the actual assertion `config-contract` describes: either the boot-assertion check named in config.md's own "Boot assertion" field (run it, confirm it fails loudly on the wrong target), or — where nothing mechanical is possible — get the named human to explicitly confirm the seam. Only once that real check has happened, record it:
    `sh "$CLAUDE_PLUGIN_ROOT/hooks/config-hash.sh" .spine/config.md > .spine/config-asserted`
-   Running only the hash command without the assertion behind it just makes Gate C's check pass on paper — the contract was never actually verified, which is the exact failure config-contract exists to catch. If you skip this here, the first implementer subagent dispatched in BUILD hits Gate C's deny instead of you — and a subagent has no reliable way to locate `$CLAUDE_PLUGIN_ROOT` on its own (it is not inherited from the controller's session), so it either stalls or, worse, tries an expensive/dangerous whole-filesystem search to find the hook script itself. Closing Gate C here, while you still have the correct plugin root, prevents that entirely. If config.md changes later (grilling in step 3 surfaces a correction), re-run the assertion and re-record before BUILD starts — a changed contract with a stale hash is exactly what Gate C is designed to catch.
+   If `$CLAUDE_PLUGIN_ROOT` is empty in your own shell (it often is — this is not reliably
+   inherited by an ordinary Bash call even in the controller's own session, not just a
+   subagent's), resolve it per `using-spine`'s bounded fallback rather than improvising a
+   search of your own. Running only the hash command without the assertion behind it just
+   makes Gate C's check pass on paper — the contract was never actually verified, which is
+   the exact failure config-contract exists to catch. If you skip this here, the first
+   implementer subagent dispatched in BUILD hits Gate C's deny instead of you — and a
+   subagent has even less to work with than you do, so it stalls or improvises its own
+   search. Closing Gate C here prevents that entirely. If config.md changes later (grilling
+   in step 3 surfaces a correction), re-run the assertion and re-record before BUILD starts
+   — a changed contract with a stale hash is exactly what Gate C is designed to catch.
 3. **Grill — one question per message, confidence-tagged (Phase 3).** Ask exactly ONE question, then STOP and wait for the answer before the next. For each question give: your own recommended answer + reasoning, and a **confidence number (0–100%)** — how sure you are that recommendation is right without the user's input. Prefer multiple-choice. Self-answer from the codebase rather than asking whenever you can.
    - **Order by confidence, lowest first.** The lowest-confidence open decision is where a question earns the most — ask it before higher-confidence ones.
    - **Run until overall design confidence reaches ~95%**, not a fixed question count. If every remaining open decision is already ≥90% confident, stop grilling and state those as assumptions in the design (step 7) instead of spending a question on them — the number is what tells you (and the user) where NOT to spend a question.

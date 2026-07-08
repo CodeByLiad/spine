@@ -182,12 +182,13 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 3. If the task is too large, break it into smaller pieces
 4. If the plan itself is wrong, escalate to the human
 5. If the report quotes a "SPINE ... GATE BLOCKED" message: this is yours to resolve, not
-   the implementer's — you have `$CLAUDE_PLUGIN_ROOT` (or can derive the plugin root) and
-   the implementer does not. Run the missing step directly (e.g. re-run
-   `hooks/config-hash.sh` and record `.spine/config-asserted`, or re-record
+   the implementer's — resolve it using `using-spine`'s bounded hook-path fallback if
+   `$CLAUDE_PLUGIN_ROOT` is empty in your own shell too (it often is, even for you — don't
+   assume it's inherited just because you're the controller). Run the missing step directly
+   (e.g. re-run `hooks/config-hash.sh` and record `.spine/config-asserted`, or re-record
    `.spine/frame-approved` if it's genuinely stale — not just re-stamping over a real
    re-approval need), then re-dispatch. Never tell the implementer to search for the hook
-   path itself.
+   path itself, and never widen your own search past the bounded fallback either.
 
 **Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
 

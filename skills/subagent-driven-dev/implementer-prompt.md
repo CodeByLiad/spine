@@ -79,8 +79,8 @@ Subagent (spine-implementer):
       search). This applies even if the deny message doesn't literally name a script —
       Gate A's stale-marker deny and Gate C's assertion deny are just as much yours to
       escalate as one that does. Report BLOCKED with the exact deny message instead — the
-      controller has the correct plugin root and can either resolve the gate directly or
-      hand you the resolved path.
+      controller has a documented bounded fallback (`using-spine`'s hook-path resolution)
+      it can run once and hand you the resolved path; a whole-disk search from you doesn't.
 
     **How to escalate:** Report back with status BLOCKED or NEEDS_CONTEXT. Describe
     specifically what you're stuck on, what you've tried, and what kind of help you need.

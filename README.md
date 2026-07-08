@@ -8,7 +8,9 @@ It is built by merging upstream source from five frameworks into one coherent bu
 
 ## Status
 
-**v0.4.5 — Phase 1 + Phase 2 closed (live-confirmed, 9 rounds). Phase 3 complete (3 of 3 parts) + 5 graft gaps closed + real bugs fixed from actual usage, adversarially reviewed by `spine-final-reviewer` itself (dogfooded on this exact fix).**
+**v0.4.6 — Phase 1 + Phase 2 closed (live-confirmed, 9 rounds). Phase 3 complete (3 of 3 parts) + 5 graft gaps closed + real bugs fixed from actual usage, adversarially reviewed by `spine-final-reviewer` itself (dogfooded on this exact fix).**
+
+A second RealCycle attempt against v0.4.5 (fresh Python CLI, greenfield) showed `framing` correctly checking `$CLAUDE_PLUGIN_ROOT` before recording the config-hash assertion — but the variable was empty in the *controller's own shell too*, not just a subagent's. It improvised a safe, bounded lookup (checking known plugin paths) rather than a dangerous one, but that was luck: v0.4.5's own fix text had assumed "the controller has the correct plugin root," which this run disproved. v0.4.6 replaces that assumption with a documented, bounded fallback (`using-spine`'s new "Resolving hook scripts when `$CLAUDE_PLUGIN_ROOT` is unset" section — a single check scoped to the plugin's own cache directory, never a wider search) that both the controller and implementer escalation paths now point to, instead of each independently guessing.
 
 First real PLAN→BUILD→REVIEW→FINISH attempt (not a scripted gate check) found two connected bugs in the FRAME stage: `framing`'s checklist never instructed actually writing `.spine/frame-approved` after the user approved — so a real approval happened but Gate A still denied the first implementer dispatch. And `framing` wrote `config.md` but never ran config-contract's own assertion before build started, so Gate C was still open too — the implementer hit that deny and, lacking `$CLAUDE_PLUGIN_ROOT` of its own, resorted to a whole-filesystem `find /` to locate the hook script, repeating on every fresh dispatch and forcing a permission prompt each time (v0.4.4).
 
