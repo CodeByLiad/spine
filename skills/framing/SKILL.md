@@ -16,7 +16,14 @@ Every task runs FRAME — a todo list, a one-function utility, a config tweak. "
 You MUST create a task (todo) for each item below and complete them in order. Do not collapse or skip.
 
 1. **Explore project context** — files, docs, recent commits, `.spine/context.md` glossary if present.
-2. **Config contract (hard sub-gate — config.md is a FRAME deliverable, not deferred to build).** If no `.spine/config.md` exists, create it here by grilling the user, then `Write` `.spine/config.md` directly with the answers — do NOT shell `find`/`cp` and do NOT read the plugin's templates (the hook handles the rest of the skeleton for you; searching for templates just spawns permission prompts). Write exactly this shape, filled in:
+2. **Config contract (hard sub-gate — config.md is a FRAME deliverable, not deferred to build).** If no `.spine/config.md` exists, resolve each field below, then `Write` `.spine/config.md` directly — do NOT shell `find`/`cp` and do NOT read the plugin's templates (the hook handles the rest of the skeleton for you; searching for templates just spawns permission prompts).
+
+   **Resolving each field — use the user's own request first, ask second, never silently assume:**
+   - If the user's request already states a field exactly (they said "React" — that answers Stack's framework), use it as given; no question needed for that specific part.
+   - For anything the request leaves open, check: is this a choice among two or more commonly-used alternatives (a language, a framework variant, a build tool, a test runner, whether to persist data at all, which DB)? **If yes, this is a real open decision and must be asked — it is NOT eligible for step 3's high-confidence skip, no matter how standard one option is.** "Most people pick Vite" is not the same as "there is only one sane choice here" — the user might have a real reason to want something else, and defaults you never confirmed are exactly the kind of unexamined assumption FRAME exists to catch (see the anti-pattern note above). Reserve the confidence-skip for things where genuinely only one answer fits given what's already established (e.g., matching a lint config or naming convention already visible in the codebase).
+   - These become the FIRST questions asked, using step 3's exact mechanism (one at a time, confidence-tagged, lowest-confidence first) — config-field questions are not a separate, quieter round; they're the start of the same grill, just gated to happen before config.md is written since Gate C needs it closed early.
+
+   Once every field is answered or given, write exactly this shape:
    ```markdown
    # .spine/config.md — pinned cross-cutting context (asserted before task one)
    - Stack:            <!-- grilled -->
@@ -45,6 +52,7 @@ You MUST create a task (todo) for each item below and complete them in order. Do
    - **Order by confidence, lowest first.** The lowest-confidence open decision is where a question earns the most — ask it before higher-confidence ones.
    - **Run until overall design confidence reaches ~95%**, not a fixed question count. If every remaining open decision is already ≥90% confident, stop grilling and state those as assumptions in the design (step 7) instead of spending a question on them — the number is what tells you (and the user) where NOT to spend a question.
    - A confidence number is your own honest estimate, not a formality — do not pad it to justify skipping a question you're actually unsure about.
+   - **A choice among two or more commonly-used alternatives is not a ≥90% item, ever**, regardless of how standard one option is — same rule as step 2's config fields. "Everyone does it this way" describes a popular default, not an inferable fact about what THIS user wants. Reserve high confidence for things with genuinely one sane answer given what's already established, not for the most common choice among several reasonable ones.
 4. **Force scope boundaries** — in-scope AND explicit out-of-scope.
 5. **Challenge overloaded terms** against `.spine/context.md`; update the glossary the moment a term resolves (terms only, no implementation detail).
 6. **Propose 2–3 approaches** with trade-offs and a recommendation.
@@ -62,4 +70,10 @@ You MUST create a task (todo) for each item below and complete them in order. Do
     fact, or restarting FRAME with a changed design — those are real re-approval events, not
     the same automatic case.
 
-Steps 1–2 run autonomously (no questions to the user). The first time you stop for the user is step 3's grill. That is the intended hand-off point.
+Step 1 always runs autonomously. Step 2 also runs autonomously ONLY when the user's own
+request plus what step 1 found already answers every config field with certainty — that's
+rare for anything beyond a trivial script. The first time you stop for the user is whenever
+the first genuinely open decision surfaces, which is very often inside step 2 itself (stack/
+persistence/test-runner choices), not always step 3. Do not let "steps 1–2 are autonomous"
+become an excuse to silently assume a multi-option field just because asking would mean
+stopping earlier than expected.
