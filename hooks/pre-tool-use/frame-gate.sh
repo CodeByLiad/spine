@@ -38,6 +38,18 @@ esac
 # below, so they correctly fall through to the gate as code, same as any
 # other unrecognized type. YAML/YAML-like config is deliberately NOT on the
 # safe list either - CI pipelines and k8s manifests are logic, not pure data.
+# `.env` is deliberately NOT on the list either, even though it looks like
+# the other flat key=value data files here - it routinely carries the exact
+# DB/project/env config Gate B/C exist to pin and assert, and (unlike toml/
+# ini) a live test found its own naive inclusion didn't even do what it
+# looked like: last-dot-wins extraction only caught bare ".env", not
+# ".env.local"/".env.production" - the variants actually used in practice.
+# Known, accepted costs of this design (fail toward the gate, not silently
+# past it): a few common tool dotfiles (.eslintrc, .prettierrc, .babelrc)
+# and pnpm-lock.yaml (collides with the yaml exclusion) now gate when they
+# didn't before. Both are one-line additions here if they prove annoying
+# enough to matter - the point of a denylist is that this is cheap to fix
+# and self-correcting, unlike a silent bypass nobody notices.
 # Isolate the basename FIRST, then the extension - extracting from the full
 # path directly (as the old allowlist version did) breaks for extensionless
 # files: with no dot anywhere in the whole path, `.*\.` can't match at all
@@ -48,7 +60,7 @@ esac
 base=$(printf '%s' "$fp_norm" | sed -E 's#.*/##')
 ext=$(printf '%s' "$base" | sed -E 's/.*\.//' | tr 'A-Z' 'a-z')
 case "$ext" in
-  md|mdx|txt|rst|adoc|json|jsonc|json5|csv|tsv|toml|ini|cfg|env|lock|lockb|properties|\
+  md|mdx|txt|rst|adoc|json|jsonc|json5|csv|tsv|toml|ini|cfg|lock|lockb|properties|\
 png|jpg|jpeg|gif|svg|ico|webp|bmp|tiff|avif|\
 mp4|mp3|wav|ogg|woff|woff2|ttf|eot|otf|pdf|\
 map|log|gitignore|gitattributes|editorconfig|npmrc|nvmrc|\
