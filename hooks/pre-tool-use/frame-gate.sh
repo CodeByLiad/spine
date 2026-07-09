@@ -22,11 +22,37 @@ case "$fp_norm" in
   */.spine/*|.spine/*) exit 0 ;;
 esac
 
-# code file? (extension allowlist; everything else passes through)
-ext=$(printf '%s' "$fp_norm" | sed -E 's/.*\.//' | tr 'A-Z' 'a-z')
+# code file? DENYLIST of known-safe non-code, not an allowlist of known-code.
+# Deliberately the opposite default of a typical extension check: unknown
+# extensions fall through to the gate (fail-closed), not past it (fail-open).
+# This project's own history is a repeated pattern of an allowlist forgetting
+# an extension and silently bypassing the hard gate (html/css were missing
+# entirely and let a full React prototype through with zero FRAME approval) -
+# a denylist's failure mode on an unlisted type is the opposite direction: an
+# unnecessary gate on a genuinely harmless new file type, which is annoying
+# but self-correcting (add one line here), not a silent bypass nobody notices.
+# This also closes a second, structural gap no allowlist could: an
+# extensionless file (Dockerfile, Makefile, Jenkinsfile, Gemfile, Rakefile,
+# Vagrantfile, Procfile) has no "." for this extraction to find, so `ext`
+# becomes the whole lowercased filename - none of those match the safe list
+# below, so they correctly fall through to the gate as code, same as any
+# other unrecognized type. YAML/YAML-like config is deliberately NOT on the
+# safe list either - CI pipelines and k8s manifests are logic, not pure data.
+# Isolate the basename FIRST, then the extension - extracting from the full
+# path directly (as the old allowlist version did) breaks for extensionless
+# files: with no dot anywhere in the whole path, `.*\.` can't match at all
+# and `ext` becomes the entire lowercased path, not the bare filename, so
+# "LICENSE" at repo root never matches the safe list below. Confirmed by
+# direct testing before this line existed - a real, distinct bug from the
+# extension-list gap this rewrite otherwise fixes.
+base=$(printf '%s' "$fp_norm" | sed -E 's#.*/##')
+ext=$(printf '%s' "$base" | sed -E 's/.*\.//' | tr 'A-Z' 'a-z')
 case "$ext" in
-  js|jsx|ts|tsx|mjs|cjs|py|go|rs|java|rb|php|c|cc|cpp|cxx|h|hh|hpp|cs|swift|kt|kts|scala|clj|cljs|ex|exs|vue|svelte|sql|sh|bash|html|htm|xhtml|css|scss|sass|less) : ;;
-  *) exit 0 ;;   # docs, json/yaml config, md, etc. -> allowed
+  md|mdx|txt|rst|adoc|json|jsonc|json5|csv|tsv|toml|ini|cfg|env|lock|lockb|properties|\
+png|jpg|jpeg|gif|svg|ico|webp|bmp|tiff|avif|\
+mp4|mp3|wav|ogg|woff|woff2|ttf|eot|otf|pdf|\
+map|log|gitignore|gitattributes|editorconfig|npmrc|nvmrc|\
+license|notice|authors|contributors|changelog|readme) exit 0 ;;
 esac
 
 # resolve repo root from the hook's cwd field (fallback to pwd)
