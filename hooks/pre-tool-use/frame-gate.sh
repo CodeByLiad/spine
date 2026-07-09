@@ -25,7 +25,7 @@ esac
 # code file? (extension allowlist; everything else passes through)
 ext=$(printf '%s' "$fp_norm" | sed -E 's/.*\.//' | tr 'A-Z' 'a-z')
 case "$ext" in
-  js|jsx|ts|tsx|mjs|cjs|py|go|rs|java|rb|php|c|cc|cpp|cxx|h|hh|hpp|cs|swift|kt|kts|scala|clj|cljs|ex|exs|vue|svelte|sql|sh|bash) : ;;
+  js|jsx|ts|tsx|mjs|cjs|py|go|rs|java|rb|php|c|cc|cpp|cxx|h|hh|hpp|cs|swift|kt|kts|scala|clj|cljs|ex|exs|vue|svelte|sql|sh|bash|html|htm|xhtml|css|scss|sass|less) : ;;
   *) exit 0 ;;   # docs, json/yaml config, md, etc. -> allowed
 esac
 
