@@ -58,6 +58,23 @@ Subagent (spine-final-reviewer):
     - Security concerns?
     - Integrates cleanly with surrounding code?
 
+    **Security (Spine `security-standard`; section 1 violations are Critical):**
+    - No secrets in the diff; no server secret exposed to the client?
+    - Every route behind token, subscription and role checks?
+    - Every id from the URL OR the request body checked against the caller's tenant?
+    - Parameterised SQL only; no array or user value inside a SQL template?
+    - Money, stock and approval transitions status-guarded inside the transaction, with a race test?
+    - Cross-tenant tests in both directions, with positive controls, mutation-proved?
+    - DB constraints behind business rules?
+    - Uploads capped while reading and content-sniffed?
+    - No stack traces or SQL text in responses?
+    - Cookies HttpOnly, Secure and SameSite?
+    - Security headers (HSTS, nosniff, frame protection, CSP) on changed services?
+    - CORS is an allowlist? Rate limits on auth and public endpoints?
+    - No global side effects in shared-process modules?
+    - New dependencies free of High or Critical advisories?
+    - Identity, roles, money, cross-tenant data or a new public endpoint touched? Then write a threat-model paragraph: how could this chain with existing routes, and what stops it.
+
     **Testing:**
     - Tests verify real behavior, not mocks?
     - Edge cases covered?

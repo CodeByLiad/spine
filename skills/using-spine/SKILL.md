@@ -11,6 +11,13 @@ description: Use at the start of any coding task — establishes the Spine gover
 3. A gate that depends on willpower is not a gate. Enforce in tooling, or assume it gets skipped.
 4. Smaller and more often beats bigger and later.
 5. Isolation is blind to everything above the task — pin cross-cutting context (the `.spine/config.md` contract) before task one.
+6. **Security is held on every branch, by the `security-standard` skill.**
+   - Plans copy its rules into their constraints.
+   - Implementers and fixers follow it.
+   - Every task review and final review checks against it.
+   - `finishing-a-branch` runs its release checks.
+
+   A project may add stricter rules, never weaker ones.
 
 ## How to use skills
 If there is even a 1% chance a skill applies, invoke it before responding. One skill owns each stage:
@@ -25,6 +32,7 @@ If there is even a 1% chance a skill applies, invoke it before responding. One s
 | REVIEW | `requesting-code-review` | resolve findings |
 | QA | `browser-qa` (user-facing work; mandatory dual-product pass for Mode B) | confirm flows pass live |
 | FINISH | `finishing-a-branch` | pick merge/PR/keep/discard |
+| ALL STAGES | `security-standard` (non-negotiable rules, per-branch checklist, release checks) | a violation of its section 1 is Critical and blocks merge |
 
 Do NOT use any `brainstorming` skill — `framing` owns alignment in Spine.
 

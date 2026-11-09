@@ -75,6 +75,14 @@ naming and copy rules, platform requirements — one line each, with exact
 values copied verbatim from the spec. Every task's requirements implicitly
 include this section.]
 
+[**Security constraints.** Copy, verbatim, every rule from the `security-standard`
+skill's section 1 that this plan's code can touch. Typical ones: tenant check on
+every URL/body id, parameterised SQL, status-guarded money/stock/approval transitions,
+no secrets, tests on the dev DB only. Add a line for each task that adds a route,
+upload, cookie, service or dependency, naming the section 2 checklist items it must
+meet. Every isolation, permission and money guard gets a mutation-proof step in its
+task.]
+
 ---
 ```
 

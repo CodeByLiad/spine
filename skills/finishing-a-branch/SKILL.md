@@ -35,7 +35,20 @@ Cannot proceed with merge/PR until tests pass.
 
 Stop. Don't proceed to Step 2.
 
-**If tests pass:** Continue to Step 2.
+**If tests pass:** Run the security release checks below, then continue to Step 2.
+
+### Security release checks (`security-standard` section 3)
+
+1. **Dependency audit.** Run `npm audit --omit=dev`, or the stack's equivalent.
+   - A High or Critical advisory in a package this branch adds or upgrades blocks the finish.
+   - Pre-existing advisories go into the finish report for the owner.
+2. **Secrets scan** of the branch's commits, e.g. `gitleaks detect --log-opts "<base>..HEAD"`.
+   - A hit blocks the finish until the secret is removed AND rotated.
+   - If no scanner is installed, write "secrets scan: not run (no scanner)" in the report. Never imply it passed.
+3. **Exposed files.** Only for branches that change static serving, hosting or routing. Confirm `.env`, `.git`, backups and logs are unreachable. A probe of a live domain needs the owner's OK.
+4. **Threat-model paragraph.** Required from the final review for any branch touching identity, roles, money, cross-tenant data or a new public endpoint. If it is missing, the review is incomplete.
+
+Write each result into the finish report as pass, fail or not run.
 
 ### Gate D — merge/push requires a passing review receipt
 
