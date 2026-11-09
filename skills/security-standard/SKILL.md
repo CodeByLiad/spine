@@ -12,22 +12,29 @@ plan's Global Constraints. `finishing-a-branch` runs the release checks.
 A project may add stricter rules of its own (its spec, its owner rulings, its `.spine/config.md`).
 It may not relax these.
 
-## 1. Non-negotiable rules — a violation is a Critical finding and blocks merge
+## 1. Non-negotiable rules — severity per section 4 (Critical rules block merge)
+
+Rules naming a layer — subscription check, admin registry, identity service, per-product DB
+role, shared process — apply **where the project has that layer**. A single-app repo with no
+subscriptions is not in breach of rule 3 for lacking a subscription check. It must still
+authenticate and authorise every route.
 
 1. **No secrets in code.** API keys, tokens, passwords, signing secrets and connection strings live
    only in git-ignored env files and the host's secret store. Never in source, tests, docs, fixtures,
    client bundles or commit history.
 2. **Server env never reaches the client.** Only variables explicitly meant for the browser (e.g. a
    `VITE_` / `NEXT_PUBLIC_` prefix) are bundled. A server secret behind a public prefix is a leak.
-3. **Every route is authenticated and authorised on the server.** Token verification, then
-   product/subscription check, then role check, then the handler. Admin routes check an audited admin
-   registry. No route relies on the client hiding a button.
+3. **Every route is authenticated and authorised on the server.** Token verification, then (where
+   the project sells products or plans) the subscription check, then the role check, then the handler.
+   Admin routes check an audited admin list where one exists, or an explicit admin role. No route
+   relies on the client hiding a button.
 4. **Object-level access on every id.** Every id that arrives in a URL **or a request body** is checked
    against the caller's tenant and permissions before it is read, written or joined. A foreign-key match
    proves only that the row exists somewhere, not that the caller owns it. Lists are scoped on the
    server, never filtered on the client.
-5. **One owner of identity.** Only the identity service creates users, sets roles or touches passwords.
-   Products read identity and never write it. A role removal takes effect on the next request.
+5. **One owner of identity.** Where identity is a separate service, only it creates users, sets roles
+   or touches passwords, and products read identity and never write it. In a single app, identity writes
+   live in one module. A role removal takes effect on the next request.
 6. **Parameterised queries only.** No string-built SQL. Never interpolate a JS array or user value into
    a SQL template. Database roles follow least privilege, one role per product where the platform allows.
 7. **Passwords hashed with bcrypt (cost ≥ 10) or Argon2id.** Never stored or logged in clear text.
@@ -85,14 +92,35 @@ For every change in the diff, as applicable:
    (rule 12).
 4. **Threat-model pass** (only for a branch that touches identity, roles, money, cross-tenant data or a
    new public endpoint). The final reviewer states how the change could be chained with existing
-   routes to escalate privilege or cross a tenant boundary, and what stops it.
+   routes to escalate privilege or cross a tenant boundary, and what stops it. The controller checks
+   the final-review report for this paragraph. If it is missing, the controller re-dispatches the
+   final reviewer before recording the review receipt.
 
-## 4. Severity guide for reviewers
+**Who owns which check.** `finishing-a-branch` owns checks 1–3: it runs them and records pass, fail
+or "not run". The final reviewer owns check 4. The final reviewer may note dependency or secret
+concerns it sees in the diff, but it does not replace the finish-stage scans.
 
-- **Critical:** any section 1 violation; any cross-tenant read or write; any privilege escalation; a secret
-  in the diff; an unguarded money/stock transition.
-- **Important:** a missing checklist item from section 2 on a changed route or service; a guard with no
-  mutation proof; a test that cannot fail.
+## 4. Severity guide for reviewers — the single source both reviewers use
+
+- **Critical:**
+  - a violation of rules 1–8, 10, 11 or 12;
+  - any cross-tenant read or write;
+  - any privilege escalation;
+  - a secret in the diff;
+  - an unguarded money, stock or approval transition;
+  - a password stored or logged in clear text.
+- **Important:**
+  - a violation of rule 9 (missing DB constraint, upload cap or content sniffing);
+  - a violation of rule 13 (a security claim with no test);
+  - a missing section 2 checklist item on a changed route or service;
+  - a guard with no mutation proof;
+  - a test that cannot fail.
+
+**Mutation proof is verified, not taken on trust.** The reviewer checks the report's mutation evidence
+against the diff. Where the evidence is thin, the reviewer re-runs the mutation on a temporary copy
+outside the working tree. A reviewer never edits the tree and never runs `git checkout`.
+
+**Reviewers never contact production or a live domain.**
 - **Minor:** hardening that reduces risk, but whose absence is not exploitable in the current code.
 
 The implementer's stated rationale never lowers a security finding's severity.

@@ -8,11 +8,12 @@ You implement exactly one task. Work test-first: write the failing test, run it 
 
 Never route a code edit through a script, heredoc or other indirection to get past a Spine gate. A gate that blocks you is the controller's to resolve. Report BLOCKED.
 
-Security standard (Spine `security-standard` skill, held on every task). Non-negotiable:
+Security standard (Spine `security-standard` skill, held on every task). Rules that name a layer apply where the project has that layer. Non-negotiable:
 - No secrets in code, tests, docs or bundles. Server env never reaches the client.
-- Every route is behind token, then subscription, then role checks. Every id from the URL OR the request body is checked against the caller's tenant.
+- Every route is authenticated and role-checked, with a subscription check where the project has subscriptions. Every id from the URL OR the request body is checked against the caller's tenant.
 - Parameterised SQL only, never an array or a user value inside a SQL template. Least-privilege DB roles.
-- Only the identity service writes users, roles or passwords. Passwords use bcrypt/Argon2id.
+- Identity writes (users, roles, passwords) happen only in the identity service, or in the one identity module. Passwords use bcrypt (cost ≥ 10) or Argon2id.
+- Never contact production or a live domain without the owner's explicit OK.
 - Money, stock and approval transitions use `UPDATE … WHERE status=… RETURNING`, with 409 when no row returns, and get a race test.
 - Database constraints back the business rules. Uploads are capped while reading and content-sniffed.
 - Refusals give a code and a plain message, never a stack trace or SQL text.

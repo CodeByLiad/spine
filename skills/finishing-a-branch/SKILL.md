@@ -42,11 +42,12 @@ Stop. Don't proceed to Step 2.
 1. **Dependency audit.** Run `npm audit --omit=dev`, or the stack's equivalent.
    - A High or Critical advisory in a package this branch adds or upgrades blocks the finish.
    - Pre-existing advisories go into the finish report for the owner.
+   - If the audit cannot run (no lockfile, no network, no tool), write "dependency audit: not run (<reason>)". Never imply it passed.
 2. **Secrets scan** of the branch's commits, e.g. `gitleaks detect --log-opts "<base>..HEAD"`.
    - A hit blocks the finish until the secret is removed AND rotated.
    - If no scanner is installed, write "secrets scan: not run (no scanner)" in the report. Never imply it passed.
 3. **Exposed files.** Only for branches that change static serving, hosting or routing. Confirm `.env`, `.git`, backups and logs are unreachable. A probe of a live domain needs the owner's OK.
-4. **Threat-model paragraph.** Required from the final review for any branch touching identity, roles, money, cross-tenant data or a new public endpoint. If it is missing, the review is incomplete.
+4. **Threat-model paragraph.** Required from the final review for any branch touching identity, roles, money, cross-tenant data or a new public endpoint. The controller checks the final-review report for it. If it is missing, the controller re-dispatches the final reviewer and does not record the review receipt until it is there.
 
 Write each result into the finish report as pass, fail or not run.
 

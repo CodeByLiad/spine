@@ -13,8 +13,6 @@ Security is part of every final review (Spine `security-standard`). Apply the sa
 
 If the branch touches identity, roles, money, cross-tenant data or a new public endpoint, add a **threat-model paragraph**: how could this change be chained with existing routes to escalate privilege or cross a tenant boundary, and what stops it.
 
-Report the release checks as you find them:
-- dependency audit result for packages the branch adds or upgrades;
-- secrets in the branch's commits.
+The controller re-dispatches you if a required threat-model paragraph is missing.
 
-If you could not run one, say "not run" rather than implying a pass. The section 1 rules of the standard are Critical when violated.
+The dependency audit and secrets scan belong to `finishing-a-branch`. Note any new dependency or suspected secret you see in the diff, but do not claim the scans ran. Severities come from the skill's section 4, the same list the task reviewer uses. Rules naming a layer apply where the project has that layer. Never contact production or a live domain.
