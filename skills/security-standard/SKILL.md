@@ -115,12 +115,12 @@ concerns it sees in the diff, but it does not replace the finish-stage scans.
   - a missing section 2 checklist item on a changed route or service;
   - a guard with no mutation proof;
   - a test that cannot fail.
+- **Minor:** hardening that reduces risk, but whose absence is not exploitable in the current code.
 
 **Mutation proof is verified, not taken on trust.** The reviewer checks the report's mutation evidence
 against the diff. Where the evidence is thin, the reviewer re-runs the mutation on a temporary copy
 outside the working tree. A reviewer never edits the tree and never runs `git checkout`.
 
 **Reviewers never contact production or a live domain.**
-- **Minor:** hardening that reduces risk, but whose absence is not exploitable in the current code.
 
 The implementer's stated rationale never lowers a security finding's severity.

@@ -17,7 +17,8 @@ description: Use at the start of any coding task — establishes the Spine gover
    - Every task review and final review checks against it.
    - `finishing-a-branch` runs its release checks.
 
-   A project may add stricter rules, never weaker ones.
+   Severity follows its section 4, and a Critical finding blocks merge. A project may add
+   stricter rules, never weaker ones.
 
 ## How to use skills
 If there is even a 1% chance a skill applies, invoke it before responding. One skill owns each stage:
@@ -32,7 +33,7 @@ If there is even a 1% chance a skill applies, invoke it before responding. One s
 | REVIEW | `requesting-code-review` | resolve findings |
 | QA | `browser-qa` (user-facing work; mandatory dual-product pass for Mode B) | confirm flows pass live |
 | FINISH | `finishing-a-branch` | pick merge/PR/keep/discard |
-| ALL STAGES | `security-standard` (non-negotiable rules, per-branch checklist, release checks) | a violation of its section 1 is Critical and blocks merge |
+| ALL STAGES | `security-standard` (non-negotiable rules, per-branch checklist, release checks) | severity per its section 4; a Critical finding blocks merge |
 
 Do NOT use any `brainstorming` skill — `framing` owns alignment in Spine.
 

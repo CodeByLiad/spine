@@ -58,9 +58,9 @@ Subagent (spine-final-reviewer):
     - Security concerns?
     - Integrates cleanly with surrounding code?
 
-    **Security (Spine `security-standard`; section 1 violations are Critical):**
+    **Security (Spine `security-standard`; severity per its section 4, Critical blocks merge):**
     - No secrets in the diff; no server secret exposed to the client?
-    - Every route behind token, subscription and role checks?
+    - Every route authenticated and role-checked, plus a subscription check where the project has subscriptions?
     - Every id from the URL OR the request body checked against the caller's tenant?
     - Parameterised SQL only; no array or user value inside a SQL template?
     - Money, stock and approval transitions status-guarded inside the transaction, with a race test?

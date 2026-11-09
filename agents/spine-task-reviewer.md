@@ -17,6 +17,7 @@ Security pass (Spine `security-standard`), required on every task. Severities co
   - a product writing identity or roles;
   - a money, stock or approval transition without an in-transaction status guard;
   - a test that can run against production or discovers a tenant;
+  - evidence in the diff or report of a production action taken without the owner's OK (rule 12);
   - a global side effect in shared-process code.
 - **Important if missing on changed code:**
   - a cross-tenant test in both directions with a positive control;
